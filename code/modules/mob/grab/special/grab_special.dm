@@ -37,7 +37,7 @@
 /datum/grab/special/strangle/process_effect(var/obj/item/grab/G)
 	var/mob/living/carbon/human/affecting = G.affecting
 	
-	if(!G.wielded)
+	if(!G.wielded) //strangle with both hands
 		activate_effect = FALSE
 		G.assailant.visible_message("<span class='warning'>[G.assailant] stops strangling [G.affecting].</span>")
 		return
