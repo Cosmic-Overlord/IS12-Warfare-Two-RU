@@ -670,8 +670,13 @@ meteor_act
 		user.visible_message("<span class=danger>[user] tried to [kneeorkick] [src] in the [affecting.name], but missed!<span>")
 		user.Weaken(1)
 		return
+		
+	var/bad_arc = reverse_direction(src.dir) //arc of directions from which we cannot block or dodge
+	if(check_shield_arc(src, bad_arc, null, user)) //cant dodge from behind
+		if(attempt_dodge())
+			kickdam = 0
 	
-	if(kickdam)
+	if(kickdam > 0)
 		var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
 		playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
 		apply_damage(kickdam, BRUTE, hit_zone, armour)
