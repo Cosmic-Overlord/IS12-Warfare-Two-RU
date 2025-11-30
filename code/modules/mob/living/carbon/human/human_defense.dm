@@ -675,6 +675,9 @@ meteor_act
 	if(check_shield_arc(src, bad_arc, null, user)) //cant dodge from behind
 		if(attempt_dodge())
 			kickdam = 0
+		else if(check_shields(kickdam, null, user, null, "the [kneeorkick]"))
+			user.visible_message("<span class=danger>[user] tried to [kneeorkick] [src] in the [affecting.name], but was parried!<span>")
+			return
 	
 	if(kickdam > 0)
 		var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
