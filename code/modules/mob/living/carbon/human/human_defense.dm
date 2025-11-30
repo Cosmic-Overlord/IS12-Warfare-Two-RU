@@ -616,6 +616,8 @@ meteor_act
 	var/hit_zone = user.zone_sel.selecting
 	var/too_high_message = "You can't reach that high."
 	var/obj/item/organ/external/affecting = get_organ(hit_zone)
+	var/kneeorkick = "kick"
+	
 	if(!affecting || affecting.is_stump())
 		to_chat(user, "<span class='danger'>They are missing that limb!</span>")
 		return
@@ -628,7 +630,6 @@ meteor_act
 				log_and_message_admins("[attacker] has kicked his teammate [src]!", attacker)
 				GLOB.ff_incidents++
 
-	var/armour = run_armor_check(hit_zone, "melee")
 	switch(hit_zone)
 		if(BP_CHEST)//If we aim for the chest we kick them in the direction we're facing.
 			if(lying)
@@ -658,10 +659,18 @@ meteor_act
 			if(!lying)
 				to_chat(user, too_high_message)
 				return
-
+	
 	var/kickdam = rand(2,7)
+	var/armour = run_armor_check(hit_zone, "melee")
 	kickdam *= strToDamageModifier(user.my_stats[STAT(str)].level)
 	user.adjustStaminaLoss(rand(10,15))//Kicking someone is a big deal.
+	
+	if(prob(20 - user.my_stats[STAT(dex)].level)) //uh oh we fucked up
+		to_chat(user, "<span class='danger'>As you try to [kneeorkick] [src], you lose your balance and fall!</span>")
+		user.visible_message("<span class=danger>[user] tried to [kneeorkick] [src] in the [affecting.name], but missed!<span>")
+		user.Weaken(1)
+		return
+	
 	if(kickdam)
 		var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
 		playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
