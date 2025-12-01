@@ -651,7 +651,8 @@ meteor_act
 	var/bad_arc = reverse_direction(src.dir) //arc of directions from which we cannot block or dodge
 	if(check_shield_arc(src, bad_arc, null, user)) //cant dodge from behind
 		if(attempt_dodge())
-			kickdam = 0
+			user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but was dodged!<span>")
+			return
 		else if(check_shields(kickdam, null, user, null, "the kick"))
 			user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but was parried!<span>")
 			return
