@@ -658,6 +658,75 @@ meteor_act
 			return
 			
 	switch(hit_zone) //now we get to the fun part
+
+		if(BP_HEAD, BP_EYES)
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			for(var/obj/item/grab/G in user)
+				if(G.assailant == user && G.affecting == src) //we're grabbing their head with both hands
+					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE) //and got lucky
+						do_kick(user, src, hit_zone, kickdam * 3, affecting) //that hurt.
+						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s [affecting.name]!<span>")
+						src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
+						src.apply_effect(kickdam*3, EYE_BLUR, armour)
+						return
+			if(specialkick == TRUE) //you got lucky
+				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
+				src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
+				src.apply_effect(kickdam*2, EYE_BLUR, armour)
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+		
+		
+		if(BP_MOUTH)//If we aim for the mouth then we kick their teeth out.
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			for(var/obj/item/grab/G in user)
+				if(G.assailant == user && G.affecting == src)
+					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE)
+						do_kick(user, src, hit_zone, kickdam * 3, affecting) //that hurt
+						user.visible_message("<span class=combat_success>[user] launches their knee towards [src]'s mouth!<span>")
+						var/obj/item/organ/external/head/U = affecting
+						U.knock_out_teeth(get_dir(user, src), rand(1,3))//Knocking out one tooth at a time.
+						return
+			if(lying && !user.lying)
+				if(istype(affecting, /obj/item/organ/external/head) && prob(95))
+					var/obj/item/organ/external/head/U = affecting
+					U.knock_out_teeth(get_dir(user, src), rand(1,3))//Knocking out one tooth at a time.
+					do_kick(user, src, hit_zone, kickdam * 2, affecting) //hurts more
+					user.visible_message("<span class=combat_success>[user] kicks [src] in the [affecting.name]!<span>")
+					return
+			else //normal ass kick
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+		
+		if(BP_THROAT)
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			if(specialkick == TRUE && !user.lying && lying) //damn that *really* hurts
+				var/mob/living/carbon/human/Attacker = user
+				var/obj/item/clothing/shoes = Attacker.shoes
+				var/actualdamage = (kickdam + shoes.force) * 3
+				do_kick(user, src, hit_zone, actualdamage, affecting) //that hurts quite a bit
+				user.visible_message("<span class=combat_success>[user] stomps down on [src]'s throat!<span>")
+				src.visible_message("<span class='danger'>[src] struggles to breathe!</span>", "<span class='danger'>You can't breathe!.</span>")
+				src.losebreath = src.losebreath + (actualdamage / 2)
+				src.apply_effect(STUTTER, actualdamage) //probably hard to talk after getting your throat stomped
+				src.Weaken(round(actualdamage / 3))
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+		
 		if(BP_CHEST) //knee in chest or kick back
 			if(user.lying && !lying && specialkick == FALSE) //your laying down while trying to kick someone standing up.
 				missed_kick(user, src, affecting)
@@ -685,73 +754,6 @@ meteor_act
 				src.visible_message("<span class='danger'>[pick("[src] was sent flying backward!", "[src] staggers back from the impact!")]</span>")
 				return
 			else //normal ass kick
-				do_kick(user, src, hit_zone, kickdam, affecting)
-				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-				return
-
-		if(BP_MOUTH)//If we aim for the mouth then we kick their teeth out.
-			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
-				missed_kick(user, src, affecting)
-				return
-			for(var/obj/item/grab/G in user)
-				if(G.assailant == user && G.affecting == src)
-					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE)
-						do_kick(user, src, hit_zone, kickdam * 3, affecting) //that hurt
-						user.visible_message("<span class=combat_success>[user] launches their knee towards [src]'s mouth!<span>")
-						var/obj/item/organ/external/head/U = affecting
-						U.knock_out_teeth(get_dir(user, src), rand(1,3))//Knocking out one tooth at a time.
-						return
-			if(lying && !user.lying)
-				if(istype(affecting, /obj/item/organ/external/head) && prob(95))
-					var/obj/item/organ/external/head/U = affecting
-					U.knock_out_teeth(get_dir(user, src), rand(1,3))//Knocking out one tooth at a time.
-					do_kick(user, src, hit_zone, kickdam * 2, affecting) //hurts more
-					user.visible_message("<span class=combat_success>[user] kicks [src] in the [affecting.name]!<span>")
-					return
-			else //normal ass kick
-				do_kick(user, src, hit_zone, kickdam, affecting)
-				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-				return
-
-		if(BP_HEAD, BP_EYES)
-			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
-				missed_kick(user, src, affecting)
-				return
-			for(var/obj/item/grab/G in user)
-				if(G.assailant == user && G.affecting == src) //we're grabbing their head with both hands
-					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE) //and got lucky
-						do_kick(user, src, hit_zone, kickdam * 3, affecting) //that hurt.
-						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s [affecting.name]!<span>")
-						src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
-						src.apply_effect(kickdam*3, EYE_BLUR, armour)
-						return
-			if(specialkick == TRUE) //you got lucky
-				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
-				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
-				src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
-				src.apply_effect(kickdam*2, EYE_BLUR, armour)
-				return
-			else
-				do_kick(user, src, hit_zone, kickdam, affecting)
-				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-				return
-		
-		if(BP_THROAT)
-			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
-				missed_kick(user, src, affecting)
-				return
-			if(specialkick == TRUE && !user.lying && lying) //damn that *really* hurts
-				var/mob/living/carbon/human/Attacker = user
-				var/obj/item/clothing/shoes = Attacker.shoes
-				var/actualdamage = (kickdam + shoes.force) * 3
-				do_kick(user, src, hit_zone, actualdamage, affecting) //that hurts quite a bit
-				user.visible_message("<span class=combat_success>[user] stomps down on [src]'s throat!<span>")
-				src.visible_message("<span class='danger'>[src] struggles to breathe!</span>", "<span class='danger'>You can't breathe!.</span>")
-				src.losebreath = src.losebreath + (actualdamage / 2)
-				src.apply_effect(STUTTER, actualdamage) //probably hard to talk after getting your throat stomped
-				src.Weaken(round(actualdamage / 3))
-				return
-			else
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
