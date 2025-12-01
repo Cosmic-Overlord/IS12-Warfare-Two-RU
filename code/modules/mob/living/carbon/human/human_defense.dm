@@ -659,17 +659,17 @@ meteor_act
 			
 	switch(hit_zone) //now we get to the fun part
 		if(BP_CHEST) //knee in chest or kick back
-			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+			if(user.lying && !lying && specialkick == FALSE) //your laying down while trying to kick someone standing up.
 				missed_kick(user, src, affecting)
 				return
 			for(var/obj/item/grab/G in user)  
 				if(G.assailant == user && G.affecting == src) //we're grabbing their head with both hands
 					if(G.target_zone == BP_HEAD && specialkick == TRUE) //and got lucky
-						do_kick(user, src, hit_zone, kickdam * 3, affecting, TRUE) //that hurt.
+						do_kick(user, src, hit_zone, kickdam * 3, affecting) //that hurt.
 						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s ribs!<span>")
 						src.adjustStaminaLoss(kickdam) //a lot
 						return
-			if(lying && !user.lying && !locate(/obj/item/grab) in target.grabbed_by || specialkick == TRUE) //target is lying down, user isn't, target isn't grabbed. Or they got lucky.
+			if(lying && !user.lying && !locate(/obj/item/grab) in target.grabbed_by || specialkick == TRUE && !user.lying) //target is lying down, user isn't, target isn't grabbed. Or they got lucky.
 				var/turf/target = get_turf(src.loc)
 				var/range = src.throw_range
 				var/throw_dir = get_dir(user, src)
@@ -678,8 +678,8 @@ meteor_act
 					target = new_turf
 					if(new_turf.density)
 						break
-				src.throw_at(target, rand(1,3), src.throw_speed)
-				do_kick(user, src, hit_zone, kickdam, affecting, TRUE)
+				src.throw_at(target, rand(2,4), src.throw_speed) //buffed
+				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src] in the [affecting.name]!<span>")
 				src.visible_message("<span class='danger'>[pick("[src] was sent flying backward!", "[src] staggers back from the impact!")]</span>")
 				return
@@ -695,7 +695,7 @@ meteor_act
 			for(var/obj/item/grab/G in user)
 				if(G.assailant == user && G.affecting == src)
 					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE)
-						do_kick(user, src, hit_zone, kickdam * 3, affecting, TRUE) //that hurt
+						do_kick(user, src, hit_zone, kickdam * 3, affecting) //that hurt
 						user.visible_message("<span class=combat_success>[user] launches their knee towards [src]'s mouth!<span>")
 						var/obj/item/organ/external/head/U = affecting
 						U.knock_out_teeth(get_dir(user, src), rand(1,3))//Knocking out one tooth at a time.
@@ -704,7 +704,7 @@ meteor_act
 				if(istype(affecting, /obj/item/organ/external/head) && prob(95))
 					var/obj/item/organ/external/head/U = affecting
 					U.knock_out_teeth(get_dir(user, src), rand(1,3))//Knocking out one tooth at a time.
-					do_kick(user, src, hit_zone, kickdam * 2, affecting, TRUE)
+					do_kick(user, src, hit_zone, kickdam * 2, affecting) //hurts more
 					user.visible_message("<span class=combat_success>[user] kicks [src] in the [affecting.name]!<span>")
 					return
 			else //normal ass kick
@@ -719,14 +719,14 @@ meteor_act
 			for(var/obj/item/grab/G in user)
 				if(G.assailant == user && G.affecting == src) //we're grabbing their head with both hands
 					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE) //and got lucky
-						do_kick(user, src, hit_zone, kickdam * 3, affecting, TRUE) //that hurt.
-						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s head!<span>")
+						do_kick(user, src, hit_zone, kickdam * 3, affecting) //that hurt.
+						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s [affecting.name]!<span>")
 						src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
-						src.apply_effect(kickdam*2, EYE_BLUR, armour)
+						src.apply_effect(kickdam*3, EYE_BLUR, armour)
 						return
 			if(specialkick == TRUE) //you got lucky
-				do_kick(user, src, hit_zone, kickdam * 2, affecting, TRUE) //that hurt.
-				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s head!<span>")
+				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
 				src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
 				src.apply_effect(kickdam*2, EYE_BLUR, armour)
 				return
@@ -734,8 +734,82 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-
-/mob/living/carbon/human/proc/do_kick(var/mob/living/user, var/mob/living/victim, var/hit_zone, var/kickdam, var/obj/item/organ/external/affecting, var/special = FALSE) //easier for me
+		
+		if(BP_L_ARM)
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			if(specialkick == TRUE && !user.lying) //you got lucky
+				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
+				if (target.l_hand)
+					//Disarm left hand
+					//Urist McAssistant dropped the macguffin with a scream just sounds odd.
+					src.visible_message("<span class='danger'>\The [src.l_hand] falls out of [src]'s grasp!</span>")
+					src.drop_l_hand()
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+				
+		if(BP_L_HAND)
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			if(specialkick == TRUE && !user.lying) //you got lucky
+				var/obj/item/tothrow = src.r_hand
+				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
+				if (src.l_hand)
+					// Disarm right hand
+					src.visible_message("<span class='danger'>\The [src.l_hand] flies out of [src]'s grasp!</span>")
+					src.drop_r_hand()
+					tothrow.throw_at(get_edge_target_turf(src, pick(GLOB.alldirs)), rand(1,3), throw_speed)//Throw that sheesh away
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+				
+		if(BP_R_ARM)
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			if(specialkick == TRUE && !user.lying) //you got lucky
+				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
+				if (src.r_hand)
+					// Disarm right hand
+					src.visible_message("<span class='danger'>\The [src.r_hand] falls out of [src]'s grasp!</span>")
+					src.drop_r_hand()
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+		
+		if(BP_R_HAND)
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			if(specialkick == TRUE && !user.lying) //you got lucky
+				var/obj/item/tothrow = src.r_hand
+				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
+				if (src.r_hand)
+					// Disarm right hand
+					src.visible_message("<span class='danger'>\The [src.r_hand] flies out of [src]'s grasp!</span>")
+					src.drop_r_hand()
+					tothrow.throw_at(get_edge_target_turf(src, pick(GLOB.alldirs)), rand(1,3), throw_speed)//Throw that sheesh away
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+		
+		
+/mob/living/carbon/human/proc/do_kick(var/mob/living/user, var/mob/living/victim, var/hit_zone, var/kickdam, var/obj/item/organ/external/affecting) //easier for me
 	var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
 	playsound(user.loc, kicksound, 65, 0.5)
 	victim.apply_damage(kickdam, BRUTE, hit_zone, run_armor_check(hit_zone, "melee"))
