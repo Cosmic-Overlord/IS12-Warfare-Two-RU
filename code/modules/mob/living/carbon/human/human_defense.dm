@@ -668,6 +668,7 @@ meteor_act
 						do_kick(user, src, hit_zone, kickdam * 3, affecting) //that hurt.
 						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s ribs!<span>")
 						src.adjustStaminaLoss(kickdam) //a lot
+						src.visible_message("<span class='danger'>[src] looks winded.</span>", "<span class='danger'>You feel air leaving your lungs!.</span>")
 						return
 			if(lying && !user.lying && !locate(/obj/item/grab) in target.grabbed_by || specialkick == TRUE && !user.lying) //target is lying down, user isn't, target isn't grabbed. Or they got lucky.
 				var/turf/target = get_turf(src.loc)
@@ -729,6 +730,26 @@ meteor_act
 				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
 				src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
 				src.apply_effect(kickdam*2, EYE_BLUR, armour)
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+		
+		if(BP_THROAT)
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			if(specialkick == TRUE && !user.lying && lying) //damn that *really* hurts
+				var/mob/living/carbon/human/Attacker = user
+				var/obj/item/clothing/shoes = Attacker.shoes
+				var/actualdamage = (kickdam + shoes.force) * 3
+				do_kick(user, src, hit_zone, actualdamage, affecting) //that hurts quite a bit
+				user.visible_message("<span class=combat_success>[user] stomps down on [src]'s throat!<span>")
+				src.visible_message("<span class='danger'>[src] struggles to breathe!</span>", "<span class='danger'>You can't breathe!.</span>")
+				src.losebreath = src.losebreath + (actualdamage / 2)
+				src.apply_effect(STUTTER, actualdamage) //probably hard to talk after getting your throat stomped
+				src.Weaken(round(actualdamage / 3))
 				return
 			else
 				do_kick(user, src, hit_zone, kickdam, affecting)
