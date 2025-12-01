@@ -685,14 +685,16 @@ meteor_act
 				src.visible_message("<span class='danger'>[pick("[target] was sent flying backward!", "[target] staggers back from the impact!")]</span>")
 				admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
 				return
-			else if(user.lying && !lying && specialkick == false) //you missed dummy
+			else if(user.lying && !lying && specialkick == FALSE) //you missed dummy
 				user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but missed!<span>")
 				playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
+				return
 			else //normal ass kick
 				playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
 				apply_damage(kickdam, BRUTE, hit_zone, armour)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
+				return
 
 		if(BP_MOUTH)//If we aim for the mouth then we kick their teeth out.
 			for(var/obj/item/grab/G in user)
@@ -712,14 +714,17 @@ meteor_act
 					apply_damage(kickdam * 3, BRUTE, hit_zone, armour) //that hurt.
 					user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 					admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
-			else if(user.lying && !lying && specialkick == false)
+					return
+			else if(user.lying && !lying && specialkick == FALSE)
 				user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but missed!<span>")
 				playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
+				return
 			else //normal ass kick
 				playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
 				apply_damage(kickdam, BRUTE, hit_zone, armour)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
+				return
 
 		if(BP_HEAD, BP_THROAT, BP_EYES)
 			if(!lying)
