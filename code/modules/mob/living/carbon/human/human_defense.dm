@@ -634,7 +634,7 @@ meteor_act
 				GLOB.ff_incidents++
 	
 	var/kickdam = rand(2,7)
-	//var/armour = run_armor_check(hit_zone, "melee")
+	var/armour = run_armor_check(hit_zone, "melee")
 	kickdam *= strToDamageModifier(user.my_stats[STAT(str)].level)
 	user.adjustStaminaLoss(rand(15,30))//Kicking someone is a *bigger* deal than before.
 	
@@ -659,9 +659,12 @@ meteor_act
 			
 	switch(hit_zone) //now we get to the fun part
 		if(BP_CHEST) //knee in chest or kick back
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
 			for(var/obj/item/grab/G in user)  
 				if(G.assailant == user && G.affecting == src) //we're grabbing their head with both hands
-					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE) //and got lucky
+					if(G.target_zone == BP_HEAD && specialkick == TRUE) //and got lucky
 						do_kick(user, src, hit_zone, kickdam * 3, affecting, TRUE) //that hurt.
 						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s ribs!<span>")
 						src.adjustStaminaLoss(kickdam) //a lot
@@ -677,11 +680,8 @@ meteor_act
 						break
 				src.throw_at(target, rand(1,3), src.throw_speed)
 				do_kick(user, src, hit_zone, kickdam, affecting, TRUE)
-				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-				src.visible_message("<span class='danger'>[pick("[target] was sent flying backward!", "[target] staggers back from the impact!")]</span>")
-				return
-			else if(user.lying && !lying && specialkick == FALSE) //you missed dummy
-				missed_kick(user, src, affecting)
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src] in the [affecting.name]!<span>")
+				src.visible_message("<span class='danger'>[pick("[src] was sent flying backward!", "[src] staggers back from the impact!")]</span>")
 				return
 			else //normal ass kick
 				do_kick(user, src, hit_zone, kickdam, affecting)
@@ -689,6 +689,9 @@ meteor_act
 				return
 
 		if(BP_MOUTH)//If we aim for the mouth then we kick their teeth out.
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
 			for(var/obj/item/grab/G in user)
 				if(G.assailant == user && G.affecting == src)
 					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE)
@@ -704,18 +707,33 @@ meteor_act
 					do_kick(user, src, hit_zone, kickdam * 2, affecting, TRUE)
 					user.visible_message("<span class=combat_success>[user] kicks [src] in the [affecting.name]!<span>")
 					return
-			else if(user.lying && !lying && specialkick == FALSE)
-				missed_kick(user, src, affecting)
-				return
 			else //normal ass kick
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
 
-		if(BP_HEAD, BP_THROAT, BP_EYES)
-			if(!lying)
-				kickdam = 0 // you missed dummy
-
+		if(BP_HEAD, BP_EYES)
+			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+				missed_kick(user, src, affecting)
+				return
+			for(var/obj/item/grab/G in user)
+				if(G.assailant == user && G.affecting == src) //we're grabbing their head with both hands
+					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE) //and got lucky
+						do_kick(user, src, hit_zone, kickdam * 3, affecting, TRUE) //that hurt.
+						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s head!<span>")
+						src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
+						src.apply_effect(kickdam*2, EYE_BLUR, armour)
+						return
+			if(specialkick == TRUE) //you got lucky
+				do_kick(user, src, hit_zone, kickdam * 2, affecting, TRUE) //that hurt.
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s head!<span>")
+				src.visible_message("<span class='danger'>[src] looks momentarily disoriented.</span>", "<span class='danger'>You see stars.</span>")
+				src.apply_effect(kickdam*2, EYE_BLUR, armour)
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
 
 /mob/living/carbon/human/proc/do_kick(var/mob/living/user, var/mob/living/victim, var/hit_zone, var/kickdam, var/obj/item/organ/external/affecting, var/special = FALSE) //easier for me
 	var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
