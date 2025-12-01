@@ -634,7 +634,7 @@ meteor_act
 				GLOB.ff_incidents++
 	
 	var/kickdam = rand(2,7)
-	var/armour = run_armor_check(hit_zone, "melee")
+	//var/armour = run_armor_check(hit_zone, "melee")
 	kickdam *= strToDamageModifier(user.my_stats[STAT(str)].level)
 	user.adjustStaminaLoss(rand(15,30))//Kicking someone is a *bigger* deal than before.
 	
@@ -657,18 +657,14 @@ meteor_act
 			user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but was parried!<span>")
 			return
 			
-	var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
-			
 	switch(hit_zone) //now we get to the fun part
 		if(BP_CHEST) //knee in chest or kick back
 			for(var/obj/item/grab/G in user)  
 				if(G.assailant == user && G.affecting == src) //we're grabbing their head with both hands
 					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE) //and got lucky
-						playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
-						apply_damage(kickdam * 3, BRUTE, hit_zone, armour) //that hurt.
-						src.adjustStaminaLoss(kickdam) //a lot
+						do_kick(user, src, hit_zone, kickdam * 3, affecting, TRUE) //that hurt.
 						user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s ribs!<span>")
-						admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
+						src.adjustStaminaLoss(kickdam) //a lot
 						return
 			if(lying && !user.lying && !locate(/obj/item/grab) in target.grabbed_by || specialkick == TRUE) //target is lying down, user isn't, target isn't grabbed. Or they got lucky.
 				var/turf/target = get_turf(src.loc)
@@ -680,57 +676,56 @@ meteor_act
 					if(new_turf.density)
 						break
 				src.throw_at(target, rand(1,3), src.throw_speed)
-				playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
-				apply_damage(kickdam, BRUTE, hit_zone, armour)
-				user.visible_message("<span class=combat_success>[user] kicks [src] in the [affecting.name]!<span>")
+				do_kick(user, src, hit_zone, kickdam, affecting, TRUE)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				src.visible_message("<span class='danger'>[pick("[target] was sent flying backward!", "[target] staggers back from the impact!")]</span>")
-				admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
 				return
 			else if(user.lying && !lying && specialkick == FALSE) //you missed dummy
-				user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but missed!<span>")
-				playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
+				missed_kick(user, src, affecting)
 				return
 			else //normal ass kick
-				playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
-				apply_damage(kickdam, BRUTE, hit_zone, armour)
+				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-				admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
 				return
 
 		if(BP_MOUTH)//If we aim for the mouth then we kick their teeth out.
 			for(var/obj/item/grab/G in user)
 				if(G.assailant == user && G.affecting == src)
 					if(G.target_zone == BP_HEAD && G.wielded && specialkick == TRUE)
-						playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
+						do_kick(user, src, hit_zone, kickdam * 3, affecting, TRUE) //that hurt
+						user.visible_message("<span class=combat_success>[user] launches their knee towards [src]'s mouth!<span>")
 						var/obj/item/organ/external/head/U = affecting
 						U.knock_out_teeth(get_dir(user, src), rand(1,3))//Knocking out one tooth at a time.
-						apply_damage(kickdam * 3, BRUTE, hit_zone, armour) //that hurt.
-						user.visible_message("<span class=combat_success>[user] launches their knee towards [src]'s mouth!<span>")
-						admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
 						return
 			if(lying && !user.lying)
 				if(istype(affecting, /obj/item/organ/external/head) && prob(95))
 					var/obj/item/organ/external/head/U = affecting
 					U.knock_out_teeth(get_dir(user, src), rand(1,3))//Knocking out one tooth at a time.
-					apply_damage(kickdam * 3, BRUTE, hit_zone, armour) //that hurt.
-					user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-					admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
+					do_kick(user, src, hit_zone, kickdam * 2, affecting, TRUE)
+					user.visible_message("<span class=combat_success>[user] kicks [src] in the [affecting.name]!<span>")
 					return
 			else if(user.lying && !lying && specialkick == FALSE)
-				user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but missed!<span>")
-				playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
+				missed_kick(user, src, affecting)
 				return
 			else //normal ass kick
-				playsound(user.loc, kicksound, 65, 0.5)//playsound(user.loc, 'sound/weapons/kick.ogg', 50, 0)
-				apply_damage(kickdam, BRUTE, hit_zone, armour)
+				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-				admin_attack_log(user, src, "Has kicked [src]", "Has been kicked by [user].")
 				return
 
 		if(BP_HEAD, BP_THROAT, BP_EYES)
 			if(!lying)
 				kickdam = 0 // you missed dummy
 
+
+/mob/living/carbon/human/proc/do_kick(var/mob/living/user, var/mob/living/victim, var/hit_zone, var/kickdam, var/obj/item/organ/external/affecting, var/special = FALSE) //easier for me
+	var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
+	playsound(user.loc, kicksound, 65, 0.5)
+	victim.apply_damage(kickdam, BRUTE, hit_zone, run_armor_check(hit_zone, "melee"))
+	admin_attack_log(user, src, "Has kicked [victim]", "Has been kicked by [user].")
+	
+/mob/living/carbon/human/proc/missed_kick(var/mob/living/user, var/mob/living/victim, var/obj/item/organ/external/affecting)  
+    user.visible_message("<span class=danger>[user] tried to kick [victim] in the [affecting.name], but missed!<span>")  
+    playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
 
 //We crit failed, let's see what happens to us.
 /mob/living/proc/resolve_critical_miss(var/obj/item/I)
