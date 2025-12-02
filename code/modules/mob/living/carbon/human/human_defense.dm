@@ -831,6 +831,33 @@ meteor_act
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
 		
+		if(BP_GROIN)
+			if(specialkick == TRUE && !user.lying && !lying) //both are standing
+				do_kick(user, src, hit_zone, kickdam * 2, affecting) //DAMN THATS DIRTEH
+				user.visible_message("<span class=combat_success>[user] launches their knee into [src]'s groin!<span>")
+				src.visible_message("<span class='warning'>[src] looks like \he is in pain!</span>", "<span class='phobia'>[(src.gender=="female") ? "Oh god that hurt!" : "Oh no, not your[pick("testicles", "crown jewels", "clockweights", "family jewels", "marbles", "bean bags", "teabags", "sweetmeats", "goolies")]!"]</span>")
+				src.apply_effects(stutter = kickdam * 2, agony = kickdam * 3, blocked = armour)
+				return
+			else if(specialkick == TRUE && !user.lying && lying) //victim is lying, attacker is standing
+				var/mob/living/carbon/human/Attacker = user
+				var/obj/item/clothing/shoes = Attacker.shoes
+				var/actualdamage = (kickdam + shoes.force) * 3
+				do_kick(user, src, hit_zone, actualdamage, affecting) //OUCH
+				user.visible_message("<span class=combat_success>[user] stomps down on [src]'s groin!<span>")
+				src.visible_message("<span class='warning'>[src] looks like \he is in pain!</span>", "<span class='phobia'>[(src.gender=="female") ? "Oh god that hurt!" : "Oh no, not your[pick("testicles", "crown jewels", "clockweights", "family jewels", "marbles", "bean bags", "teabags", "sweetmeats", "goolies")]!"]</span>")
+				src.apply_effects(stutter = actualdamage * 4, agony = actualdamage * 6, blocked = armour) //OOOOOOF
+				return
+			else if(specialkick == TRUE && user.lying && !lying) //attacker is lying, victim is standing
+				do_kick(user, src, hit_zone, kickdam, affecting) //not as effective, still hurts like a bitch
+				user.visible_message("<span class=combat_success>[user] launches a knee up into [src]'s groin!<span>")
+				src.visible_message("<span class='warning'>[src] looks like \he is in pain!</span>", "<span class='phobia'>[(src.gender=="female") ? "Oh god that hurt!" : "Oh no, not your[pick("testicles", "crown jewels", "clockweights", "family jewels", "marbles", "bean bags", "teabags", "sweetmeats", "goolies")]!"]</span>")
+				src.apply_effects(stutter = kickdam * 2, agony = kickdam * 3, blocked = armour)
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
+		
 		
 /mob/living/carbon/human/proc/do_kick(var/mob/living/user, var/mob/living/victim, var/hit_zone, var/kickdam, var/obj/item/organ/external/affecting) //easier for me
 	var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
