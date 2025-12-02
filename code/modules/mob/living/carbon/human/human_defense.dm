@@ -858,6 +858,22 @@ meteor_act
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
 		
+		if(BP_R_LEG, BP_L_LEG)
+			if(specialkick == TRUE && !user.lying) //you got lucky
+				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
+				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
+				if(!lying && !crouching)
+					//force crouch
+					src.visible_message("<span class='danger'>[src] drops to one knee!</span>")
+					src.toggle_crouch()
+				else if(!lying && crouching)
+					src.visible_message("<span class='danger'>[src]'s stance crumbles, collapsing to the ground!</span>")
+					src.Weaken(1)
+				return
+			else
+				do_kick(user, src, hit_zone, kickdam, affecting)
+				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
+				return
 		
 /mob/living/carbon/human/proc/do_kick(var/mob/living/user, var/mob/living/victim, var/hit_zone, var/kickdam, var/obj/item/organ/external/affecting) //easier for me
 	var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
