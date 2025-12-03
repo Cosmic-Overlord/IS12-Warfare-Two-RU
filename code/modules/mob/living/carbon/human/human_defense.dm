@@ -619,7 +619,6 @@ meteor_act
 	var/hit_zone = user.zone_sel.selecting
 	//var/too_high_message = "You can't reach that high."
 	var/obj/item/organ/external/affecting = get_organ(hit_zone)
-	var/specialkick = FALSE //this kick is doing something special
 	
 	if(!affecting || affecting.is_stump())
 		to_chat(user, "<span class='danger'>They are missing that limb!</span>")
@@ -636,7 +635,7 @@ meteor_act
 	var/kickdam = rand(2,7)
 	var/armour = run_armor_check(hit_zone, "melee")
 	kickdam *= strToDamageModifier(user.my_stats[STAT(str)].level)
-	user.adjustStaminaLoss(rand(15,30))//Kicking someone is a *bigger* deal than before.
+	user.adjustStaminaLoss(rand(10,20))//Kicking someone is a *bigger* deal than before.
 	
 	if(prob(20 - user.my_stats[STAT(dex)].level)) //uh oh we fucked up
 		if(!user.lying)
@@ -645,9 +644,6 @@ meteor_act
 		user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but missed!<span>")
 		return
 	
-	if(prob(user.SKILL_LEVEL(melee) * 10) && specialkick == FALSE)
-		specialkick = TRUE
-		
 	var/bad_arc = reverse_direction(src.dir) //arc of directions from which we cannot block or dodge
 	if(check_shield_arc(src, bad_arc, null, user)) //cant dodge from behind
 		if(attempt_dodge())
@@ -657,10 +653,17 @@ meteor_act
 			user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but was parried!<span>")
 			return
 			
+	var/missed = !prob((user.SKILL_LEVEL(melee) * 10) + (user.my_stats[STAT(dex)].level) - (src.my_stats[STAT(dex)].level))	 //if true, you missed
+	if(missed) //you missed dummy
+		missed_kick(user, src, affecting)
+		return
+		
+	var/specialkick = prob((user.SKILL_LEVEL(melee) * 5)) //you didn't miss and got lucky!
+			
 	switch(hit_zone) //now we get to the fun part
 
 		if(BP_HEAD, BP_EYES)
-			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
+			if(user.lying && !lying && specialkick == FALSE) //they're too high and we didn't get lucky
 				missed_kick(user, src, affecting)
 				return
 			for(var/obj/item/grab/G in user)
@@ -728,7 +731,7 @@ meteor_act
 				return
 		
 		if(BP_CHEST) //knee in chest or kick back
-			if(user.lying && !lying && specialkick == FALSE) //your laying down while trying to kick someone standing up.
+			if(user.lying && !lying && specialkick == FALSE) //your laying down while trying to kick someone standing up. or you missed.
 				missed_kick(user, src, affecting)
 				return
 			if(lying && !user.lying && !locate(/obj/item/grab) in src.grabbed_by || specialkick == TRUE && !user.lying) //target is lying down, user isn't, target isn't grabbed. Or we got lucky.
@@ -759,73 +762,53 @@ meteor_act
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
 		
-		if(BP_L_ARM)
+		if(BP_L_ARM, BP_R_ARM)
 			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
 				missed_kick(user, src, affecting)
 				return
 			if(specialkick == TRUE && !user.lying) //you got lucky
 				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
 				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
-				if (target.l_hand)
-					//Disarm left hand
-					//Urist McAssistant dropped the macguffin with a scream just sounds odd.
-					src.visible_message("<span class='danger'>\The [src.l_hand] falls out of [src]'s grasp!</span>")
-					src.drop_l_hand()
+				if(hit_zone == BP_L_ARM)
+					if(target.l_hand)
+						//Disarm left hand
+						//Urist McAssistant dropped the macguffin with a scream just sounds odd.
+						src.visible_message("<span class='danger'>\The [src.l_hand] falls out of [src]'s grasp!</span>")
+						src.drop_l_hand()
+				else
+					if(target.r_hand)
+						//Disarm right hand
+						//Urist McAssistant dropped the macguffin with a scream just sounds odd.
+						src.visible_message("<span class='danger'>\The [src.r_hand] falls out of [src]'s grasp!</span>")
+						src.drop_l_hand()
+				
 				return
 			else
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
 				
-		if(BP_L_HAND)
-			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
-				missed_kick(user, src, affecting)
-				return
-			if(specialkick == TRUE && !user.lying) //you got lucky
-				var/obj/item/tothrow = src.r_hand
-				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
-				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
-				if (src.l_hand)
-					// Disarm right hand
-					src.visible_message("<span class='danger'>\The [src.l_hand] flies out of [src]'s grasp!</span>")
-					src.drop_r_hand()
-					tothrow.throw_at(get_edge_target_turf(src, pick(GLOB.alldirs)), rand(1,3), throw_speed)//Throw that sheesh away
-				return
-			else
-				do_kick(user, src, hit_zone, kickdam, affecting)
-				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-				return
-				
-		if(BP_R_ARM)
+		if(BP_L_HAND, BP_R_HAND)
 			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
 				missed_kick(user, src, affecting)
 				return
 			if(specialkick == TRUE && !user.lying) //you got lucky
 				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
 				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
-				if (src.r_hand)
+				if(hit_zone == BP_L_HAND)
+					if(src.l_hand)
+						// Disarm right hand
+						var/obj/item/tothrow = src.l_hand
+						src.visible_message("<span class='danger'>\The [src.l_hand] flies out of [src]'s grasp!</span>")
+						src.drop_l_hand()
+						tothrow.throw_at(get_edge_target_turf(src, pick(GLOB.alldirs)), rand(1,3), throw_speed)//Throw that sheesh away
+				else
+					if (src.r_hand)
 					// Disarm right hand
-					src.visible_message("<span class='danger'>\The [src.r_hand] falls out of [src]'s grasp!</span>")
-					src.drop_r_hand()
-				return
-			else
-				do_kick(user, src, hit_zone, kickdam, affecting)
-				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
-				return
-		
-		if(BP_R_HAND)
-			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
-				missed_kick(user, src, affecting)
-				return
-			if(specialkick == TRUE && !user.lying) //you got lucky
-				var/obj/item/tothrow = src.r_hand
-				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
-				user.visible_message("<span class=combat_success>[user] lands a solid kick on [src]'s [affecting.name]!<span>")
-				if (src.r_hand)
-					// Disarm right hand
-					src.visible_message("<span class='danger'>\The [src.r_hand] flies out of [src]'s grasp!</span>")
-					src.drop_r_hand()
-					tothrow.throw_at(get_edge_target_turf(src, pick(GLOB.alldirs)), rand(1,3), throw_speed)//Throw that sheesh away
+						var/obj/item/tothrow = src.r_hand
+						src.visible_message("<span class='danger'>\The [src.r_hand] flies out of [src]'s grasp!</span>")
+						src.drop_r_hand()
+						tothrow.throw_at(get_edge_target_turf(src, pick(GLOB.alldirs)), rand(1,3), throw_speed)//Throw that sheesh away
 				return
 			else
 				do_kick(user, src, hit_zone, kickdam, affecting)
