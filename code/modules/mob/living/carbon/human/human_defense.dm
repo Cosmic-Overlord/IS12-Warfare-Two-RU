@@ -438,7 +438,7 @@ meteor_act
 	affecting.sabotaged = 1
 	return 1
 
-/mob/living/carbon/human/proc/human_to_human_collision(var/mob/living/carbon/human/thing, var/speed)
+/mob/living/carbon/human/proc/human_to_human_collision(var/mob/living/carbon/human/thing, var/speed) //this wasn't already a thing?
 	visible_message("<span class='danger'>[thing] slams into \the [src]!</span>")
 	var/smashsound = pick("sound/effects/gore/smash[rand(1,3)].ogg", "sound/effects/gore/trauma1.ogg")
 	playsound(loc, smashsound, 50, 1, -1)
@@ -474,15 +474,15 @@ meteor_act
 						attacker.throwing = 0
 						return
 				if(I_DISARM)
-					var/tacklechance = attacker.weight + attacker.my_stats[STAT(str)].level - src.my_stats[STAT(str)].level - src.weight + 100
+					var/tacklechance = attacker.weight + attacker.my_stats[STAT(str)].level - src.my_stats[STAT(str)].level - src.weight
 					if(prob(tacklechance)) //successful tackle!
 						attacker.visible_message("<span class='combat_success'>[attacker] tackles [src] to the ground!</span>")
 						attacker.Weaken(1)
 						src.Weaken(3)
 						attacker.throwing = 0
 						return
-					else //uh oh you fucked up
-						attacker.visible_message("<span class='danger'>[attacker] attempted [src] but fails and falls to the ground!</span>")
+					else //nice dolphin dive sucker
+						attacker.visible_message("<span class='danger'>[attacker] attempted to tackle [src] but fails and falls to the ground!</span>")
 						attacker.Weaken(3)
 						attacker.throwing = 0
 						return
