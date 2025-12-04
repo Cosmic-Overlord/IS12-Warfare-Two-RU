@@ -438,22 +438,71 @@ meteor_act
 	affecting.sabotaged = 1
 	return 1
 
+/mob/living/carbon/human/proc/human_to_human_collision(var/mob/living/carbon/human/thing, var/speed)
+	visible_message("<span class='danger'>[thing] slams into \the [src]!</span>")
+	var/smashsound = pick("sound/effects/gore/smash[rand(1,3)].ogg", "sound/effects/gore/trauma1.ogg")
+	playsound(loc, smashsound, 50, 1, -1)
+	src.take_organ_damage(speed*5)
+	thing.take_organ_damage(speed*5)
+	thing.add_blood(src)
+	src.add_blood(thing)
+	thing.throwing = 0
+
 //this proc handles being hit by a thrown atom
 /mob/living/carbon/human/hitby(atom/movable/AM as mob|obj,var/speed = THROWFORCE_SPEED_DIVISOR)
 	if(istype(AM,/mob/living/carbon/human))
 		var/mob/living/carbon/human/attacker = AM
+		var/bad_arc = reverse_direction(src.dir) //arc of directions from which we cannot block or dodge
+		if(check_shield_arc(src, bad_arc, null, AM)) //cant dodge from behind
+			if(attempt_dodge())
+				return
+			else if(check_shields(null, AM, null, null, AM))
+				AM.throwing = 0
+				return
 		if(attacker.jumping)
 			switch(attacker.a_intent)
-				if(I_HURT, I_HELP, I_DISARM, I_GRAB)
+				if(I_HURT)
 					var/obj/item/I = attacker.get_active_hand()
 					if(!I) //unarmed special attacks
-						attacker.visible_message("<span class='combat_success'>[attacker] performs a jumping attack! </span>")
+						attacker.visible_message("<span class='combat_success'>[attacker] performs a jumping attack!</span>")
 						src.attack_hand(attacker, 3 * speed) //force = mass * acceleration
+						attacker.throwing = 0
 						return
 					else
-						attacker.visible_message("<span class='combat_success'>[attacker] performs a jumping attack! </span>")
+						attacker.visible_message("<span class='combat_success'>[attacker] performs a jumping attack!</span>")
 						I.attack(src, attacker, attacker.zone_sel.selecting, TRUE)
+						attacker.throwing = 0
 						return
+				if(I_DISARM)
+					var/tacklechance = attacker.weight + attacker.my_stats[STAT(str)].level - src.my_stats[STAT(str)].level - src.weight + 100
+					if(prob(tacklechance)) //successful tackle!
+						attacker.visible_message("<span class='combat_success'>[attacker] tackles [src] to the ground!</span>")
+						attacker.Weaken(1)
+						src.Weaken(3)
+						attacker.throwing = 0
+						return
+					else //uh oh you fucked up
+						attacker.visible_message("<span class='danger'>[attacker] attempted [src] but fails and falls to the ground!</span>")
+						attacker.Weaken(3)
+						attacker.throwing = 0
+						return
+				if(I_GRAB)
+					var/obj/item/I = attacker.get_active_hand()
+					if(!I)
+						src.attack_hand(attacker)
+						attacker.do_wield()
+						attacker.throwing = 0
+						return
+					else //you get a normal attack if your holding something.
+						attacker.visible_message("<span class='combat_success'>[attacker] performs a jumping attack!</span>")
+						I.attack(src, attacker, attacker.zone_sel.selecting)
+						attacker.throwing = 0
+						return
+				if(I_HELP)
+					src.human_to_human_collision(attacker, speed)
+					return
+		src.human_to_human_collision(attacker, speed)
+		return
 	if(istype(AM,/obj/))
 		var/obj/O = AM
 
@@ -495,7 +544,7 @@ meteor_act
 			return
 			
 		var/bad_arc = reverse_direction(src.dir) //arc of directions from which we cannot block or dodge
-		if(check_shield_arc(src, bad_arc, null, AM) && H != src) //cant dodge from behind
+		if(check_shield_arc(src, bad_arc, null, AM)) //cant dodge from behind
 			if(attempt_dodge())
 				return
 			else if(check_shields(null, O, null, zone, src))
