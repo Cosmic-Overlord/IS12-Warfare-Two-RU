@@ -461,7 +461,7 @@ meteor_act
 				return
 		if(attacker.jumping)
 			switch(attacker.a_intent)
-				if(I_HURT)
+				if(I_HURT) //special attack!
 					var/obj/item/I = attacker.get_active_hand()
 					if(!I) //unarmed special attacks
 						attacker.visible_message("<span class='combat_success'>[attacker] performs a jumping attack!</span>")
@@ -473,7 +473,7 @@ meteor_act
 						I.attack(src, attacker, attacker.zone_sel.selecting, TRUE)
 						attacker.throwing = 0
 						return
-				if(I_DISARM)
+				if(I_DISARM) //tackle em!
 					var/tacklechance = attacker.weight + attacker.my_stats[STAT(str)].level - src.my_stats[STAT(str)].level - src.weight
 					if(prob(tacklechance)) //successful tackle!
 						attacker.visible_message("<span class='combat_success'>[attacker] tackles [src] to the ground!</span>")
@@ -486,7 +486,7 @@ meteor_act
 						attacker.Weaken(3)
 						attacker.throwing = 0
 						return
-				if(I_GRAB)
+				if(I_GRAB) //grab em with both hands!
 					var/obj/item/I = attacker.get_active_hand()
 					if(!I)
 						src.attack_hand(attacker)
@@ -498,7 +498,7 @@ meteor_act
 						I.attack(src, attacker, attacker.zone_sel.selecting)
 						attacker.throwing = 0
 						return
-				if(I_HELP)
+				if(I_HELP) //you weren't prepared for the collision...
 					src.human_to_human_collision(attacker, speed)
 					return
 		src.human_to_human_collision(attacker, speed)
