@@ -523,7 +523,7 @@ The slots that you can use are found in items_clothing.dm and are the inventory 
 		
 	if(target.grabbed_by.len) //REAL SOLID SNAKE SHIT
 		for(var/obj/item/grab/G in target.grabbed_by)
-			if(G.target_zone in list(BP_L_ARM, BP_R_ARM, BP_L_HAND, BP_R_HAND)) //oh shit someones grabbing our arm
+			if(G.target_zone in list(BP_L_ARM, BP_R_ARM, BP_L_HAND, BP_R_HAND)) //oh shit someones grabbing our arm or hand
 				if(target.hand == 0 || target.hand == null) //righthand is active hand
 					if(G.target_zone == BP_R_ARM || G.target_zone == BP_R_HAND)
 						defensemodifier -= 300 //we're holding something in our right hand and something is holding our right arm or hand in place.
