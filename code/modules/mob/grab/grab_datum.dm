@@ -275,14 +275,14 @@
 	
 	if(G.wielded) //grabbing with 2 hands gives you a better grip
 		break_chance -= affecting.STAT_LEVEL(str)
-	if(G.affecting.a_intent == I_GRAB) //Focusing on grabbing gives you a better grip
+	if(G.assailant.a_intent == I_GRAB) //Focusing on grabbing gives you a better grip
 		break_chance -= affecting.STAT_LEVEL(end)
 	if(affecting.incapacitated(INCAPACITATION_ALL)) //includes lying down, you better spam disarm on em bud
 		break_chance -= 200 //never getting out
 	if(affecting.confused)
 		break_chance -= 25
 
-	if(affecting.mob_size > assailant.mob_size) //adult grabbing a child
+	if(assailant.mob_size > affecting.mob_size) //adult grabbing a child
 		to_chat(G.assailant, "<span class='warning'>You try to break free but feel that unless something changes, you'll never escape!</span>")
 		return
 		
