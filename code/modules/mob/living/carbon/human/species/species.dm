@@ -516,6 +516,22 @@ The slots that you can use are found in items_clothing.dm and are the inventory 
 			defensemodifier += target.my_stats[STAT(end)].level //hold onto that shit
 		if(I_HELP)
 			defensemodifier -= 300 //guaranteed disarm, you're completely unprepared
+			
+	if(target.lying && !attacker.lying) //remove or nerf if too strong
+		defensemodifier -= 25 //better chance to disarm, you're on your ass and they ain't
+		//target.visible_message("<span class='danger'>DEBUG: LYING GUARANTEED</span>")
+		
+	if(target.grabbed_by.len) //REAL SOLID SNAKE SHIT
+		for(var/obj/item/grab/G in target.grabbed_by)
+			if(G.target_zone in list(BP_L_ARM, BP_R_ARM, BP_L_HAND, BP_R_HAND)) //oh shit someones grabbing our arm or hand
+				if(target.hand == 0 || target.hand == null) //righthand is active hand
+					if(G.target_zone == BP_R_ARM || G.target_zone == BP_R_HAND)
+						defensemodifier -= 300 //we're holding something in our right hand and something is holding our right arm or hand in place.
+						//target.visible_message("<span class='danger'>DEBUG: RHAND GUARANTEED</span>")
+				else if(target.hand == 1)//left hand is active hand	
+					if(G.target_zone == BP_L_ARM || G.target_zone == BP_L_HAND)
+						defensemodifier -= 300
+						//target.visible_message("<span class='danger'>DEBUG: LHAND GUARANTEED</span>")
 
 	var/disarmchance = attacker.SKILL_LEVEL(melee) * 5 + (attacker.my_stats[STAT(str)].level) + (attacker.my_stats[STAT(dex)].level) + bonus - target.SKILL_LEVEL(melee) * 2.5 - (target.my_stats[STAT(str)].level) - defensemodifier
 	// your melee skill * 5 - target melee skill * 2.5 + bonus + dex + str - target str - defensemodifier 

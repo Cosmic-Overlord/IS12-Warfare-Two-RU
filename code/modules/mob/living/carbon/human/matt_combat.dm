@@ -14,6 +14,7 @@
 				if(G.target_zone in list(BP_L_LEG, BP_R_LEG, BP_L_FOOT, BP_R_FOOT)) //oh shit someones grabbing our leg
 					var/obj/item/organ/external/O = G.get_targeted_organ()
 					to_chat(src, "<span class='phobia'>You try to dodge, but you feel a grip holding your [O.name] in place!</span>")
+					src.visible_message("<span class='danger'>[src] attempts to dodge, but is held in place!</span>")
 					return 0
 				else
 					dodge_modifier -= 30 //okay its not a grab by the legs or feet, thats still bad
