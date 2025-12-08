@@ -265,7 +265,7 @@ meteor_act
 			switch(user.a_intent)
 				if(I_HURT)//Offensive attacks do even more damage.
 					effective_force += I.force
-				if(I_WEAK)
+				if(I_HELP)
 					effective_force = (effective_force/2) //Half the amount of force.
 
 	if(user.a_intent == I_DISARM)//If we're trying to disarm then hit for less damage.
