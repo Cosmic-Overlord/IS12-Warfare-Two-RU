@@ -109,13 +109,6 @@
 		RestrainedClickOn(A)
 		return 1
 
-	if(in_throw_mode)
-		if(isturf(A) || isturf(A.loc))
-			throw_item(A)
-			trigger_aiming(TARGET_CAN_CLICK)
-			return 1
-		throw_mode_off()
-
 	var/obj/item/W = get_active_hand()
 
 	if(W == A) // Handle attack_self
@@ -145,6 +138,13 @@
 					else
 						to_chat(H, "<span class='phobia'>You try to move your right hand, but you feel a grip holding your right hand in place!</span>")
 						return 0
+						
+	if(in_throw_mode)
+		if(isturf(A) || isturf(A.loc))
+			throw_item(A)
+			trigger_aiming(TARGET_CAN_CLICK)
+			return 1
+		throw_mode_off()
 
 	//Atoms on your person
 	// A is your location but is not a turf; or is on you (backpack); or is on something on you (box in backpack); sdepth is needed here because contents depth does not equate inventory storage depth.
