@@ -164,6 +164,18 @@ meteor_act
 	if(!default_parry_check(src, attacker, damage_source))
 		return 0
 		
+	var/obj/item/organ/external/activehand = null
+	var/obj/item/organ/external/activearm = null
+	if(hand)
+		activehand = organs_by_name[BP_L_HAND]
+		activearm = organs_by_name[BP_L_ARM]
+	else
+		activehand = organs_by_name[BP_R_HAND]
+		activearm = organs_by_name[BP_R_ARM]
+	
+	if(!activehand || !activehand.is_usable() || !activearm || !activearm.is_usable())
+		return 0 //we ain't parrying with a hand if it or the arm it's attached to is broken
+		
 	var/zone_guessed_correctly = (def_zone == zone_sel.selecting) // Check if defender guessed the correct zone  
 	  
 	// Calculate parry chance based on melee skill and zone guess  
@@ -177,12 +189,16 @@ meteor_act
 	if(a_intent == I_GRAB) // Better chance on grab intent  
 		parry_chance += 25  
 	  
-	if(prob(parry_chance)) //we parried with our bare hands
-		visible_message("<span class='combat_success'>\The [src] parries [attack_text] with their bare hands!</span>")  
+	if(prob(parry_chance)) //we parried with our bare hand
+		visible_message("<span class='combat_success'>\The [src] parries [attack_text] with their bare hand!</span>")  
 		playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
 		adjustStaminaLoss(damage)
+		
+		if(prob(STAT_LEVEL(end) + 10))
+			to_chat(src, "<span class='combat_success'>As you parry, you feel a rush of adrenaline!</span>")
+			make_adrenaline((STAT_LEVEL(end)) / 21) //Get a little blood pumping
 		  
-		// Riposte only if zone was guessed correctly  
+		//attempt counter grab only if zone was guessed correctly
 		if(zone_guessed_correctly && a_intent == I_GRAB && prob(SKILL_LEVEL(melee) * 7))
 			var/prevzone = zone_sel.selecting
 			if(istype(damage_source, /mob/living/carbon/human) && attack_text == "the kick") //if someones trying to kick us
