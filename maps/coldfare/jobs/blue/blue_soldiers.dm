@@ -21,7 +21,8 @@
 		..()
 		H.add_stats(rand(12,17), rand(10,16), rand(8,12), rand(10, 16))
 		SSwarfare.blue.team += H
-		H.assign_random_squad(BLUE_TEAM)
+		if(can_be_in_squad)
+			H.assign_random_squad(BLUE_TEAM)
 		H.fully_replace_character_name("Pvt. [H.real_name]")
 		H.warfare_language_shit(LANGUAGE_BLUE)
 		H.assign_random_quirk()
@@ -60,14 +61,14 @@
 	total_positions = 10
 
 	//Skill defines
-	medical_skill = 8
-	surgery_skill = 6
+	medical_skill = 9
+	surgery_skill = 7
 	engineering_skill = 4
-	auto_rifle_skill = 3
-	semi_rifle_skill = 7
-	boltie_skill = 9
+	auto_rifle_skill = 5
+	semi_rifle_skill = 8
+	boltie_skill = 10
 	sniper_skill = 1
-	shotgun_skill = 6
+	shotgun_skill = 10
 	lmg_skill = 1
 	smg_skill = 4
 
@@ -78,10 +79,11 @@
 	equip(var/mob/living/carbon/human/H)
 		var/current_name = H.real_name
 		..()
-		if(can_be_in_squad)
-			H.assign_random_squad(BLUE_TEAM, "medic")
+		H.add_stats(rand(12,16), rand(11,18), rand(9,14), rand(10, 17))
+		H.assign_random_squad(BLUE_TEAM, "medic")
 		H.set_trait(new/datum/trait/death_tolerant())
 		H.fully_replace_character_name("Medic [current_name]")
+
 		H.say(";Medic reporting for duty!")
 
 
