@@ -411,9 +411,7 @@
 	update_icon()
 
 /obj/item/gun/projectile/attackby(var/obj/item/A as obj, mob/user as mob)
-	if(istype(A, /obj/item/attachable))
-		attach_to_gun(user, A)
-	else if(aspect_chosen(/datum/aspect/madness))
+	if(aspect_chosen(/datum/aspect/madness))
 		to_chat(user, "<span class='warning'>An otherworldly force prevents you from reloading. Do what comes natural.</span>")
 		return
 	else
