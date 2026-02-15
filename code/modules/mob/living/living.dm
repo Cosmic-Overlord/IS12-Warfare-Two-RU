@@ -242,6 +242,10 @@ default behaviour is:
 		src.adjustBrainLoss(src.health + src.maxHealth * 2) // Deal 2x health in BrainLoss damage, as before but variable.
 		updatehealth()
 		to_chat(src, "<span class='notice'>You have given up life and succumbed to death.</span>")
+		
+		var/death_message = "[src.real_name]\n[time2text(world.realtime, "MM-DD")]\n[GLOB.war_lore?.name || "Unknown Battle"]"
+		src.play_screen_text(death_message, alert = /atom/movable/screen/text/screen_text/audible/BF1)
+		
 		death()//No mercy.
 	else
 		to_chat(src, "<span class='notice'>You are too alive to die.</span>")
@@ -960,7 +964,6 @@ default behaviour is:
 			playsound(src,pick(GLOB.swing_hit_sound), 100, 1)
 			H.custom_pain("[pick("OW", "OUCH", "DANG")]!!! You hit your head on the bridge!",rand(5, 15),affecting = head)
 			return
-
 		to_chat(src, "<span class='binfo'>You stand up.</span>")
 		if(istype(loc, /turf/simulated/floor/trench))
 			if(H.in_trench && !locate(/obj/structure/bridge, get_turf(src))) // Please do not stand up while you under bridge thank you.
