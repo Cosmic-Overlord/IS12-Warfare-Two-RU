@@ -212,10 +212,10 @@
 	
 /atom/movable/screen/text/screen_text/audible/BF1 //sovl!!!
 	color = "#d8d4cf"
-	style_open = "<span style=\"text-align: left; vertical-align:'top'; font-family: 'Javanese Text'; -dm-text-outline: 1 black; font-size: 36px;\">" //its locked to 12 px???
+	style_open = "<span style=\"text-align: left; vertical-align:'top'; font-family: 'Javanese Text'; -dm-text-outline: 1 black; font-size: 16px;\">"
 	screen_loc = "CENTER, CENTER";
-	maptext_height = 192 * 2
-	maptext_width = 512 * 2
+	maptext_height = 192
+	maptext_width = 512
 	fade_out_delay = 3 SECONDS
 	play_delay = 1.5
 
