@@ -120,6 +120,7 @@
 	desc = "A handgun holster. Made of expensive leather."
 	icon_state = "holster"
 	overlay_state = "holster_low"
+	can_hold = list(/obj/item/gun/projectile/revolver/cpt)
 
 /obj/item/clothing/accessory/holster/hip
 	name = "hip holster"

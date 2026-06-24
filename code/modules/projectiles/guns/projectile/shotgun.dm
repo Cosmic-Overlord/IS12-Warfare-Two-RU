@@ -36,6 +36,7 @@
 	var/forwardsound = 'sound/weapons/guns/interact/shotgun_forward.ogg'
 	casingsound = 'sound/weapons/guns/misc/shotgun_fall.ogg' //Same here.
 	wielded_item_state = "wshotgun"
+	empty_icon = "shotgun-e"
 	gun_type = GUN_SHOTGUN
 
 /obj/item/gun/projectile/shotgun/pump/New()
@@ -121,6 +122,20 @@
 	if(M)
 		M.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 
+/obj/item/gun/projectile/shotgun/pump/sawn
+	name = "Sawn shotgun"
+	desc = "This custom W-T Remmington 29x shotgun is a favourite of various burglars and Greens. Useful for illegal sweeping alleys."
+	icon_state = "rshotgun"
+	item_state = "rshotgun"
+	max_shells = 5
+	w_class = ITEM_SIZE_NORMAL
+	force = 10
+	ammo_type = /obj/item/ammo_casing/shotgun/pellet
+	handle_casings = HOLD_CASINGS
+	one_hand_penalty = 0
+	wielded_item_state = "wshotgun"
+	empty_icon = "rshotgun-e"
+
 /obj/item/gun/projectile/shotgun/pump/combat
 	name = "combat shotgun"
 	desc = "Built for close quarters combat, the Hephaestus Industries KS-40 is widely regarded as a weapon of choice for repelling boarders."
@@ -131,6 +146,7 @@
 	ammo_type = /obj/item/ammo_casing/shotgun
 	one_hand_penalty = 50 //a little heavier than the regular shotgun
 	wielded_item_state = "shotgun-wielded"
+	empty_icon = "cshotgun-e"
 
 /obj/item/gun/projectile/shotgun/pump/border
 	name = "border shotgun"
@@ -140,6 +156,7 @@
 	max_shells = 7
 	ammo_type = /obj/item/ammo_casing/shotgun
 	wielded_item_state = "cshotgun2"
+	empty_icon = "border-e"
 
 /obj/item/gun/projectile/shotgun/doublebarrel
 	name = "\improper MS Doom"
@@ -229,7 +246,7 @@
 			SetName("sawn-off shotgun")
 			desc = "Omar's coming!"
 			shortened = TRUE
-			
+
 	else
 		if(!broke_open)
 			return

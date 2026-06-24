@@ -72,3 +72,12 @@
 	category = "PLACE"
 	spawn_weight = 1
 */
+/* // посёлок городского типа
+/datum/map_template/ruin/warfare_mid/poselok
+	name = "Village Fare"
+	id = "village_fare"
+	description = "The little urban experience."
+	suffixes = list("poselokfare.dmm")
+	category = "PLACE"
+	spawn_weight = 1
+*/

@@ -755,10 +755,10 @@
 	item_state = "schmeiser"
 	wielded_item_state = "schmeiser-wielded"
 
-	//loaded_icon = "schmeiser"
+	loaded_icon = "schmeiser"
 	unwielded_loaded_icon = "schmeiser"
 	wielded_loaded_icon = "schmeiser-wielded"
-	//unloaded_icon = "schmeiser-e"
+	unloaded_icon = "schmeiser-e"
 	unwielded_unloaded_icon = "schmeiser-e"
 	wielded_unloaded_icon = "schmeiser-e"
 
@@ -1028,3 +1028,25 @@
 	name = "Shig 420"
 	desc = SPAN_DANGER("I shouldn't touch this... I shouldn't even look at it...\n\nBy god... What have we done?")
 */
+
+/obj/item/gun/projectile/automatic/m22/warmonger/krautshot
+	name = "Mk.1 Krautshot"
+	desc = "One of prototype semi-automatic rifles; So, this one can shot and it makes you feel like a real soldier."
+	icon_state = "krautshot" //do sprites
+	item_state = "autorifle"
+	wielded_item_state = "autorifle-wielded"
+	fire_sound = 'sound/weapons/gunshot/gunshot_arifle.ogg'
+	loaded_icon = "krautshot"
+	unwielded_loaded_icon = "autorifle"
+	wielded_loaded_icon = "autorifle-wielded"
+	unloaded_icon = "krautshot-e"
+	unwielded_unloaded_icon = "autorifle-e"
+	wielded_unloaded_icon = "autorifle-wielded-e"
+	condition = 75
+
+	magazine_type = /obj/item/ammo_magazine/c45rifle/akarabiner
+	allowed_magazines = /obj/item/ammo_magazine/c45rifle/akarabiner
+	fire_delay = 0
+	firemodes = list()
+	w_class = ITEM_SIZE_HUGE
+	gun_type = GUN_SEMIAUTO

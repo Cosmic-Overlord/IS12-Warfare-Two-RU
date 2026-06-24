@@ -1,6 +1,7 @@
 /obj/item/gun/projectile/automatic //Hopefully someone will find a way to make these fire in bursts or something. --Superxpdude
 	name = "prototype SMG"
 	desc = "A protoype lightweight, fast firing gun. Uses 9mm rounds."
+//	icon = 'icons/obj/gun_old.dmi'	//old shit? Ported from new-o-bay
 	icon_state = "saber"	//ugly
 	w_class = ITEM_SIZE_NORMAL
 	load_method = MAGAZINE
@@ -24,31 +25,12 @@
 		//list(mode_name="short bursts",   burst=5, fire_delay=null, move_delay=4,    one_hand_penalty=2, burst_accuracy=list(0,-1,-1,-1,-2), dispersion=list(0.6, 0.6, 1.0, 1.0, 1.2)),
 		)
 
-/obj/item/gun/projectile/automatic/c20r/oldsmg
-	name = "\improper 9MM Harbinger"
-	desc = "A 9MM SMG, popular among prison gaurds and soldiers alike."
-	icon_state = "smg"
-	item_state = "wt550"
-	wielded_item_state = "smg-wielded"
-	one_hand_penalty = 1
-	auto_eject = 0
-	unload_sound = 'sound/weapons/guns/interact/smg_magout.ogg'
-	reload_sound = 'sound/weapons/guns/interact/smg_magin.ogg'
-	cock_sound 	 = 'sound/weapons/guns/interact/smg_cock.ogg'
-	condition = 80
-
-/obj/item/gun/projectile/automatic/c20r/oldsmg/update_icon()
-	..()
-	if(ammo_magazine)
-		icon_state = "smg"
-	else
-		icon_state = "smg-e"
-
-
 /obj/item/gun/projectile/automatic/machine_pistol
 	name = ".45 machine pistol"
 	desc = "The Lumoco Arms MP6 Vesper, A fairly common machine pistol. Sometimes refered to as an 'uzi' by the backwater spacers it is often associated with. Uses .45 rounds."
-	icon_state = "mpistolen"
+	icon_state = "mini-uzi"
+	loaded_icon = "mini-uzi-l"
+	unloaded_icon = "mini-uzi-e"
 	item_state = "wt550"
 	w_class = ITEM_SIZE_NORMAL
 	load_method = MAGAZINE
@@ -65,13 +47,6 @@
 		list(mode_name="automatic",   	 burst=1, fire_delay=0,  move_delay=0, one_hand_penalty=2, burst_accuracy=list(0,-1,-1), dispersion=list(0.0, 3, 5), automatic = 2)
 		//list(mode_name="short bursts",   burst=5, fire_delay=null, move_delay=4,    one_hand_penalty=2, burst_accuracy=list(0,-1,-1,-1,-2), dispersion=list(0.6, 0.6, 1.0, 1.0, 1.2)),
 		)
-
-/obj/item/gun/projectile/automatic/mini_uzi/update_icon()
-	..()
-	if(ammo_magazine)
-		icon_state = "mpistolen"
-	else
-		icon_state = "mpistolen-empty"
 
 /obj/item/gun/projectile/automatic/c20r
 	name = "10mm submachine gun"
@@ -108,10 +83,34 @@
 		icon_state = "c20r"
 	return
 
+/obj/item/gun/projectile/automatic/c20r/oldsmg
+	name = "\improper 9MM Harbinger"
+	desc = "A 9MM SMG, popular among prison gaurds and soldiers alike."
+	icon_state = "saber"
+	loaded_icon = "saber-l"
+	unloaded_icon = "saber-e"
+	item_state = "wt550"
+	wielded_item_state = "smg-wielded"
+	one_hand_penalty = 1
+	auto_eject = 0
+	unload_sound = 'sound/weapons/guns/interact/smg_magout.ogg'
+	reload_sound = 'sound/weapons/guns/interact/smg_magin.ogg'
+	cock_sound 	 = 'sound/weapons/guns/interact/smg_cock.ogg'
+	condition = 80
+
+/obj/item/gun/projectile/automatic/c20r/oldsmg/update_icon()
+	..()
+	if(ammo_magazine)
+		icon_state = "saber"
+	else
+		icon_state = "saber-e"
+	return
+
 /obj/item/gun/projectile/automatic/m22
 	name = "M-22 Assault Rifle"
 	desc = "Well-loved by grunts everywhere"
 	icon_state = "m22"
+	unloaded_icon = "m22-e"
 	item_state = "arifle"
 	w_class = ITEM_SIZE_HUGE
 	force = 10
@@ -119,8 +118,8 @@
 	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 2, TECH_ILLEGAL = 8)
 	slot_flags = SLOT_BACK|SLOT_S_STORE
 	load_method = MAGAZINE
-	magazine_type = /obj/item/ammo_magazine/c45rifle
-	allowed_magazines = /obj/item/ammo_magazine/c45rifle
+	magazine_type = /obj/item/ammo_magazine/c45rifle/akarabiner
+	allowed_magazines = /obj/item/ammo_magazine/c45rifle/akarabiner
 	one_hand_penalty = 4
 	wielded_item_state = "arifle-wielded"
 	unload_sound 	= 'sound/weapons/guns/interact/sfrifle_magout.ogg'
@@ -138,6 +137,7 @@
 	name = "assault rifle"
 	desc = "The rugged STS-35 is a durable automatic weapon of a make popular on the frontier worlds. The serial number has been scratched off. Uses 5.56mm rounds."
 	icon_state = "arifle"
+	unloaded_icon = "arifle-empty"
 	item_state = null
 	w_class = ITEM_SIZE_HUGE
 	force = 10
@@ -163,7 +163,6 @@
 		)
 
 /obj/item/gun/projectile/automatic/sts35/update_icon()
-	icon_state = (ammo_magazine)? "arifle" : "arifle-empty"
 	wielded_item_state = (ammo_magazine)? "arifle-wielded" : "arifle-wielded-empty"
 	..()
 
@@ -201,7 +200,9 @@
 /obj/item/gun/projectile/automatic/z8
 	name = "bullpup assault rifle"
 	desc = "The Z8 Bulldog is an older model bullpup carbine, made by the now defunct Zendai Foundries. Uses armor piercing 7.62mm rounds. Makes you feel like a space marine when you hold it."
-	icon_state = "carbine"
+	icon_state = "carbine-empty"
+	loaded_icon = "carbine-loaded"
+	unloaded_icon = "carbine"
 	item_state = "z8carbine"
 	w_class = ITEM_SIZE_HUGE
 	force = 10
