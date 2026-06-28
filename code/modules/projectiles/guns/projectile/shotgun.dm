@@ -19,8 +19,10 @@
 /obj/item/gun/projectile/shotgun/pump
 	name = "shotgun"
 	desc = "The mass-produced W-T Remmington 29x shotgun is a favourite of police and security forces on many worlds. Useful for sweeping alleys."
-	icon_state = "shotgun"
-	item_state = "shotgun"
+	icon_state = "wshotgun"
+	item_state = "wshotgun"
+	wielded_item_state = "wshotgun-wielded"
+	empty_icon = "wshotgun-e"
 	max_shells = 5
 	w_class = ITEM_SIZE_HUGE
 	force = 10
@@ -35,8 +37,6 @@
 	var/backsound = 'sound/weapons/guns/interact/shotgun_back.ogg'
 	var/forwardsound = 'sound/weapons/guns/interact/shotgun_forward.ogg'
 	casingsound = 'sound/weapons/guns/misc/shotgun_fall.ogg' //Same here.
-	wielded_item_state = "wshotgun"
-	empty_icon = "shotgun-e"
 	gun_type = GUN_SHOTGUN
 
 /obj/item/gun/projectile/shotgun/pump/New()
@@ -129,11 +129,12 @@
 	item_state = "rshotgun"
 	max_shells = 5
 	w_class = ITEM_SIZE_NORMAL
+	slot_flags = SLOT_BELT
 	force = 10
 	ammo_type = /obj/item/ammo_casing/shotgun/pellet
 	handle_casings = HOLD_CASINGS
 	one_hand_penalty = 0
-	wielded_item_state = "wshotgun"
+	wielded_item_state = "rshotgun"
 	empty_icon = "rshotgun-e"
 
 /obj/item/gun/projectile/shotgun/pump/combat
@@ -145,11 +146,12 @@
 	max_shells = 7 //match the ammo box capacity, also it can hold a round in the chamber anyways, for a total of 8.
 	ammo_type = /obj/item/ammo_casing/shotgun
 	one_hand_penalty = 50 //a little heavier than the regular shotgun
-	wielded_item_state = "shotgun-wielded"
+	wielded_item_state = "cshotgun-wielded"
 	empty_icon = "cshotgun-e"
 
 /obj/item/gun/projectile/shotgun/pump/border
 	name = "border shotgun"
+	desc = "Basically remade of Police Shotgun but familiar issued border combatants. Poor recoil durability, low weight and, ofcourse, 7 shell mag - perfect thing for border guardsman. "
 	icon_state = "border"
 	item_state = "cshotgun"
 	origin_tech = list(TECH_COMBAT = 5, TECH_MATERIAL = 2)

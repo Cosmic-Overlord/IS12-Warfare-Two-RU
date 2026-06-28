@@ -713,6 +713,7 @@ var/list/name_to_material
 	ignition_point = T0C+288
 	stack_origin_tech = list(TECH_MATERIAL = 1, TECH_BIO = 1)
 	dooropen_noise = 'sound/effects/doors/wooden_door_open.wav'
+	doorclose_noise = 'sound/effects/doors/woodenshut.ogg' // ported from rogue change to somewthing better ПОТОМ™
 	door_icon_base = "wood"
 	destruction_desc = "splinters"
 	sheet_singular_name = "plank"

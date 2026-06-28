@@ -264,7 +264,7 @@
 /obj/machinery/door/unpowered/simple/wood/captain
 	icon_base = "door"
 	icon = 'icons/obj/doors/captaindoor.dmi'
-	icon_state = "captaindoor"
+	icon_state = "captaindoor" // this shit is broken as fuck when we opening this || where dissapear for one second my DOOR?
 	icon_base = "captaindoor"
 	color = null
 
