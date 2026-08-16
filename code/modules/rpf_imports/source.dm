@@ -53,6 +53,24 @@
 	name = "Dev Turf"
 	desc = "A floor with pixel measurements.."
 
+/turf/unsimulated/floor/hammereditor/dev3
+	icon = 'icons/hammer/source.dmi'
+	icon_state = "devturf5"
+	name = "Dev Turf"
+	desc = "A floor with pixel measurements.."
+
+/turf/unsimulated/floor/hammereditor/dev33
+	icon = 'icons/hammer/source.dmi'
+	icon_state = "devturf6"
+	name = "Dev Turf"
+	desc = "A floor with pixel measurements.."
+
+/turf/unsimulated/floor/hammereditor/devw
+	icon = 'icons/hammer/source.dmi'
+	icon_state = "devturf7"
+	name = "Dev Turf"
+	desc = "A floor with pixel measurements.."
+
 /obj/effect/map_entity/dev_text
 	icon = 'icons/hammer/source.dmi'
 	icon_state = "dev_text"
