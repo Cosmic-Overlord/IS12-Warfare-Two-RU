@@ -89,6 +89,24 @@
 			if(warfare_faction == BLUE_TEAM)
 				for(var/area/A in GLOB.blue_captured_zones)
 					stat("Captured Trench:", A)
+			if(istype(lastarea, /area/warfare/battlefield/capture_point))
+				var/area/warfare/battlefield/capture_point/A = lastarea
+
+				var/allie_capture_progress
+				var/enemy_capture_progress
+				switch(warfare_faction)
+					if(BLUE_TEAM)
+						allie_capture_progress = A.blue_capture_progress
+						enemy_capture_progress = A.red_capture_progress
+					if(RED_TEAM)
+						allie_capture_progress = A.red_capture_progress
+						enemy_capture_progress = A.blue_capture_progress
+				var/stat_message
+				if(warfare_faction == A.captured)
+					stat_message = (1 - enemy_capture_progress/A.max_progress)*100
+				else
+					stat_message = (allie_capture_progress/A.max_progress)*100
+				stat("Trench capture progress:", "[stat_message]%")
 
 		if(crouching)
 			stat("Stance:", "Crouching")
@@ -1739,29 +1757,29 @@
 				return
 			if(intent == I_GRAB) //GET AWAY
 				var/bad_arc = reverse_direction(src.dir)
-				
+
 				if(user.lying)
 					to_chat(user, "<span class='warning'>I can't shove while lying down!</span>")
 					return 0
-				
+
 				user.setClickCooldown(DEFAULT_QUICK_COOLDOWN)
-				
+
 				if(check_shield_arc(src, bad_arc, null, user) && user != src)
-					if(attempt_dodge()) 
+					if(attempt_dodge())
 						user.visible_message("<span class='danger'>[user] attempted to shove [src], but missed!</span>")
 						return
-				
+
 				if(prob((user.STAT_LEVEL(str) - src.STAT_LEVEL(str)) * 10)) //str based shoves
 					user.visible_message("<span class='combat_success'>[user] shoves [src] back!</span>")
 					src.Move(get_step(src, user.dir), user.dir)
 				else
 					user.visible_message("<span class='danger'>[user] fails to shove [src] back!</span>")
-			
+
 			if(intent == I_HURT) //punch em and put some *effort* into it
 				if(user.lying)
 					to_chat(user, "<span class='warning'>I can't punch harder while lying down!</span>") //well you can, but some messages look weird and its probably better this way balance wise
 					return 0
-				
+
 				user.adjustStaminaLoss(30) //a whole lotta effort
 				user.visible_message("<span class='combat_success'>[user] puts some effort into their attack! </span>")
 				src.attack_hand(user, 3)
