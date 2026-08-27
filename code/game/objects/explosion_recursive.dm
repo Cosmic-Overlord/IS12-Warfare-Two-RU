@@ -128,12 +128,11 @@ proc/explosion_rec(turf/epicenter, power, shaped)
 /turf/simulated/shuttle/wall
 	explosion_resistance = 10
 
-/turf/simulated/wall
+/turf/simulated/wall/event/hi
 	opacity = 0
-	alpha = 125
-	color = "#ff0000"
+	alpha = 0
 	invisibility = 1
-	explosion_resistance = 10
+	explosion_resistance = 1000000
 
 /obj/machinery/door/get_explosion_resistance()
 	if(!density)
