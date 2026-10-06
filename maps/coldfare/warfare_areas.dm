@@ -108,19 +108,28 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 	turf_initializer = null
 	var/red_capture_points = 0
 	var/blue_capture_points = 0
-	var/list/blues = list()
-	var/list/reds = list()
+	var/blue_capture_progress = 0
+	var/red_capture_progress = 0
+	var/max_progress = 120
+	var/list/faction_members = list(RED_TEAM = list(), BLUE_TEAM = list())
+	var/half_capture_announced = FALSE
+
+	var/last_tick
+
+	var/list/people_in_area = list()
 	sound_env = AUDITORIUM
 
 /area/warfare/battlefield/capture_point/New()
 	..()
 	START_PROCESSING(SSprocessing, src)
+	max_progress = config.trench_capture_points
 
 /area/warfare/battlefield/capture_point/Entered(atom/A)
 	. = ..()
 	if(length(GLOB.payloads)) return
 	if(ishuman(A))
 		var/mob/living/carbon/human/H = A
+		people_in_area += H
 		if(H.warfare_faction != captured)
 			to_chat(H, "Now capturing [src]!")
 		else
@@ -128,70 +137,90 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 
 /area/warfare/battlefield/capture_point/Process()
 	if(length(GLOB.payloads)) return . = ..()
-	for(var/mob/living/carbon/human/H in src)
-		if(!istype(H))
+	for(var/mob/living/carbon/human/H in people_in_area)
+		if(!H.warfare_faction)
+			continue
+		var/team = H.warfare_faction
+
+		if(H.stat > CONSCIOUS || !H.client)
+			if(H in faction_members[team])
+				faction_members[team] -= H
 			continue
 
-		if(H.warfare_faction == BLUE_TEAM)
-			if(H.stat == CONSCIOUS)//If they're dead or unconcious then don't add them.
-				blues |= H
-			else if(H.stat > 0)//If they die or pass out remove them.
-				blues -= H
-			else if(!H.client)//No client, then remove them.
-				blues -= H
+		if(!(H in faction_members[team]))
+			faction_members[team] += H
 
-		//Same for red team.
-		else if(H.warfare_faction == RED_TEAM )
-			if(H.stat == CONSCIOUS)
-				reds |= H
-			else if(H.stat > 0)
-				reds -= H
-			else if(!H.client)
-				reds -= H
+	//If negative more blue, if positive more reds
+	var/capture_coof = length(faction_members[RED_TEAM]) - length(faction_members[BLUE_TEAM])
+	var/delta_time = (world.time - last_tick) / 10
+	if(capture_coof < 0 && captured != BLUE_TEAM)
+		change_capture_progress(round(delta_time), BLUE_TEAM)
+	else if(capture_coof > 0 && captured != RED_TEAM)
+		change_capture_progress(round(delta_time), RED_TEAM)
 
-	if(blues.len > reds.len)//More of the blue team than red team is in the area.
-		if(blue_capture_points < config.trench_capture_points)
-			blue_capture_points++//Increase the points until it's captured.
-		if(red_capture_points > 0)
-			red_capture_points--
-	else if(blues.len < reds.len)//Opposite here.
-		if(red_capture_points < config.trench_capture_points)
-			red_capture_points++
-		if(blue_capture_points > 0)
-			blue_capture_points--
-
-	if(blue_capture_points == (config.trench_capture_points/2) && (captured != BLUE_TEAM))//Announce when we're halfway done.
+	if(!half_capture_announced && blue_capture_progress >= (max_progress/2) && (captured != BLUE_TEAM))//Announce when we're halfway done.
 		to_world("<big>[uppertext("[BLUE_TEAM] are 50% done capturing the [src]")]</big>")
+		half_capture_announced = TRUE
 
-	if(red_capture_points == (config.trench_capture_points/2) && (captured != RED_TEAM))
+	if(!half_capture_announced && red_capture_progress >= (max_progress/2) && (captured != RED_TEAM))
 		to_world("<big>[uppertext("[RED_TEAM] are 50% done capturing the [src]")]</big>")
+		half_capture_announced = TRUE
 
-	if(blue_capture_points >= config.trench_capture_points && (captured != BLUE_TEAM))//If we've already captured it we don't want to capture it again.
+	if(blue_capture_progress >= max_progress && (captured != BLUE_TEAM))//If we've already captured it we don't want to capture it again.
 		to_world("<big>[uppertext("[BLUE_TEAM] HAVE CAPTURED THE [src]")]!</big>")
 		captured = BLUE_TEAM
 		GLOB.blue_captured_zones |= src//Add it to our list.
 		GLOB.red_captured_zones -= src//Remove it from theirs.
-		blue_capture_points = 0//Reset it back to 0.
-		red_capture_points = 0//For both sides.
+		blue_capture_progress = 0//Reset it back to 0.
+		red_capture_progress = 0//For both sides.
 		sound_to(world, 'sound/effects/capture.ogg')
 
-	else if(red_capture_points >= config.trench_capture_points && (captured != RED_TEAM))
+	else if(red_capture_progress >= max_progress && (captured != RED_TEAM))
 		to_world("<big>[uppertext("[RED_TEAM] HAVE CAPTURED THE [src]")]!</big>")
 		captured = RED_TEAM
 		GLOB.red_captured_zones |= src
 		GLOB.blue_captured_zones -= src
-		blue_capture_points = 0
-		red_capture_points = 0
+		blue_capture_progress = 0
+		red_capture_progress = 0
 		sound_to(world, 'sound/effects/capture.ogg')
+	if(red_capture_progress == 0 || red_capture_progress == 0)
+		half_capture_announced = FALSE
+
+	last_tick = world.time
+
+/area/warfare/battlefield/capture_point/proc/change_capture_progress(amount, team)
+	switch(team)
+		if(BLUE_TEAM)
+
+			if(blue_capture_progress + amount < max_progress)
+				blue_capture_progress += amount
+			else
+				blue_capture_progress = max_progress
+
+			if(red_capture_progress - amount >= 0)
+				red_capture_progress -= amount
+			else
+				red_capture_progress = 0
+
+		if(RED_TEAM)
+
+			if(red_capture_progress + amount < max_progress)
+				red_capture_progress += amount
+			else
+				red_capture_progress = max_progress
+
+			if(blue_capture_progress - amount >= 0)
+				blue_capture_progress -= amount
+			else
+				blue_capture_progress = 0
+
 
 /area/warfare/battlefield/capture_point/Exit(mob/living/L)
 	. = ..()
 	if(length(GLOB.payloads)) return
 	if(ishuman(L))
-		if(L in blues)
-			blues -= L
-		else if(L in reds)
-			reds -= L
+		people_in_area -= L
+		faction_members[L.warfare_faction] -= L
 
 /area/warfare/battlefield/capture_point/mid
 	name = "Middle Bunker"
@@ -217,7 +246,7 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>") //you should gtfo
 				return TRUE
 			else if(locationtogoto.y >= currentlocation.y) //allow retreating north
-				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>") 
+				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>")
 				return TRUE
 			else
 				to_chat(H, "<big>WE DO NOT CONTROL THE MIDDLE BUNKER!</big>")
@@ -236,7 +265,7 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 				else if(locationtogoto.y >= currentlocation.y)
 					return TRUE
 				else
-					to_chat(H, "<big>WE DO NOT CONTROL THE MIDDLE BUNKER!</big>") 
+					to_chat(H, "<big>WE DO NOT CONTROL THE MIDDLE BUNKER!</big>")
 					return FALSE
 	return TRUE
 
@@ -266,7 +295,7 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>") //you should gtfo
 				return TRUE
 			else if(locationtogoto.y <= currentlocation.y) //allow retreating south
-				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>") 
+				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>")
 				return TRUE
 			else
 				to_chat(H, "<big>WE DO NOT CONTROL THE MIDDLE BUNKER!</big>")
@@ -374,7 +403,7 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>") //you should gtfo
 				return TRUE
 			else if(locationtogoto.y >= currentlocation.y) //allow retreating north
-				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>") 
+				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>")
 				return TRUE
 			else
 				to_chat(H, "<big>WE DO NOT CONTROL THE TRENCHES!</big>")
@@ -428,7 +457,7 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>") //you should gtfo
 				return TRUE
 			else if(locationtogoto.y <= currentlocation.y) //allow retreating south
-				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>") 
+				to_chat(H, "<big>I AM BEHIND ENEMY LINES, I SHOULD RETREAT BACK TO FRIENDLY LINES!</big>")
 				return TRUE
 			else
 				to_chat(H, "<big>WE DO NOT CONTROL THE TRENCHES!</big>")
