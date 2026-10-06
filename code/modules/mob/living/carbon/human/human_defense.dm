@@ -29,32 +29,39 @@ meteor_act
 			return 100
 
 	var/obj/item/organ/external/organ = get_organ(def_zone)
-	var/armor = getarmor_organ(organ, P.check_armour)
-	var/penetrating_damage = ((P.damage + P.armor_penetration) * P.penetration_modifier) - armor
+	var/armor = getarmor_organ(organ, P.check_armour, P.damage)
+	var/penetrating_damage = P.penetrating ? (P.damage * P.penetration_modifier) : (((P.damage + P.armor_penetration) * P.penetration_modifier) - armor)
+	var/obj/item/gear = get_covering_equipped_item(organ.body_part)
+	if(!P.penetrating && gear && gear.armor_durability > 0 && P.damage < gear.penetration_threshold)
+		penetrating_damage = 0
 
-	//Organ damage
-	if(organ.internal_organs.len && prob(35 + max(penetrating_damage, -12.5)))
-		var/damage_amt = min((P.damage * P.penetration_modifier), penetrating_damage) //So we don't factor in armor_penetration as additional damage
-		if(damage_amt > 0)
-		// Damage an internal organ
-			var/list/victims = list()
-			var/list/possible_victims = shuffle(organ.internal_organs.Copy())
-			for(var/obj/item/organ/internal/I in possible_victims)
-				if(I.damage < I.max_damage && (prob((I.relative_size) * (1 / max(1, victims.len)))))
-					victims += I
-			if(victims.len)
-				for(var/obj/item/organ/victim in victims)
-					damage_amt /= 2
-					victim.take_damage(damage_amt)
+	if(!P.penetrating && gear && gear.armor_durability > 0 && P.damage < gear.penetration_threshold)
+		P.sharp = FALSE
+		P.edge = FALSE
 
+	if(penetrating_damage > 0)
+		//Organ damage
+		if(organ.internal_organs.len && prob(35 + max(penetrating_damage, -12.5)))
+			var/damage_amt = min((P.damage * P.penetration_modifier), penetrating_damage) //So we don't factor in armor_penetration as additional damage
+			if(damage_amt > 0)
+			// Damage an internal organ
+				var/list/victims = list()
+				var/list/possible_victims = shuffle(organ.internal_organs.Copy())
+				for(var/obj/item/organ/internal/I in possible_victims)
+					if(I.damage < I.max_damage && (prob((I.relative_size) * (1 / max(1, victims.len)))))
+						victims += I
+				if(victims.len)
+					for(var/obj/item/organ/victim in victims)
+						damage_amt /= 2
+						victim.take_damage(damage_amt)
 
-	//Embed or sever artery
-	if(P.can_embed() && !(species.species_flags & SPECIES_FLAG_NO_EMBED) && prob(22.5 + max(penetrating_damage, -10)) && !(prob(50) && (organ.sever_artery())) && length(organ.implants) < 10)
-		var/obj/item/material/shard/shrapnel/SP = new()
-		SP.SetName((P.name != "shrapnel")? "[P.name] shrapnel" : "shrapnel")
-		SP.desc = "[SP.desc] It looks like it was fired from [P.shot_from]."
-		SP.loc = organ
-		organ.embed(SP, silent = TRUE)
+		//Embed or sever artery
+		if(P.can_embed() && !(species.species_flags & SPECIES_FLAG_NO_EMBED) && prob(22.5 + max(penetrating_damage, -10)) && !(prob(50) && (organ.sever_artery())) && length(organ.implants) < 10)
+			var/obj/item/material/shard/shrapnel/SP = new()
+			SP.SetName((P.name != "shrapnel")? "[P.name] shrapnel" : "shrapnel")
+			SP.desc = "[SP.desc] It looks like it was fired from [P.shot_from]."
+			SP.loc = organ
+			organ.embed(SP, silent = TRUE)
 
 	var/blocked = ..(P, def_zone)
 
@@ -112,22 +119,40 @@ meteor_act
 
 	return siemens_coefficient
 
-//this proc returns the armour value for a particular external organ.
-/mob/living/carbon/human/proc/getarmor_organ(var/obj/item/organ/external/def_zone, var/type)
+/mob/living/carbon/human/proc/getarmor_organ(var/def_zone, var/type, var/damage_amount = 0)
 	if(!type || !def_zone) return 0
-	if(!istype(def_zone))
-		def_zone = get_organ(check_zone(def_zone))
-	if(!def_zone)
+	var/obj/item/organ/external/affecting = istype(def_zone, /obj/item/organ/external) ? def_zone : get_organ(check_zone(def_zone))
+	if(!affecting)
 		return 0
+
 	var/protection = 0
 	var/list/protective_gear = list(head, wear_mask, wear_suit, w_uniform, gloves, shoes)
 	for(var/obj/item/clothing/gear in protective_gear)
-		if(gear.body_parts_covered & def_zone.body_part)
-			protection = add_armor(protection, gear.armor[type])
+		if(gear.body_parts_covered & affecting.body_part)
+			if(gear.armor_durability <= 0)
+				continue
+
+			var/gear_prot = gear.armor[type] || 0
+			if(damage_amount > 0)
+				if((type == CUT || type == PIERCE) && damage_amount < gear.penetration_threshold)
+					damage_amount *= 0.6
+					gear_prot = gear.armor[BRUISE] || gear_prot
+
+				gear_prot = min(damage_amount, gear_prot, gear.armor_durability)
+				var/loss = (gear.armor_material_type == ARMOR_HARD) ? gear_prot : round(gear_prot * 0.5)
+				gear.armor_durability = max(0, gear.armor_durability - loss)
+
+				gear.update_icon()
+				if(length(gear.armor_hit_sound))
+					playsound(src, pick(gear.armor_hit_sound), 50, 1)
+
+			protection = add_armor(protection, gear_prot)
+
 		if(gear.accessories.len)
 			for(var/obj/item/clothing/accessory/bling in gear.accessories)
-				if(bling.body_parts_covered & def_zone.body_part)
+				if(bling.body_parts_covered & affecting.body_part)
 					protection = add_armor(protection, bling.armor[type])
+
 	return protection
 
 /mob/living/carbon/human/proc/check_head_coverage()
@@ -154,16 +179,16 @@ meteor_act
 		if(!shield) continue
 		. = shield.handle_shield(src, damage, damage_source, attacker, def_zone, attack_text)
 		if(.) return
-	
+
 	if(defense_intent == I_PARRY && !get_active_hand())
 		. = handle_barehand_parry(damage, damage_source, attacker, def_zone, attack_text)
-		if(.) return  
+		if(.) return
 	return 0
-	
+
 /mob/living/carbon/human/proc/handle_barehand_parry(var/damage, var/atom/damage_source, var/mob/attacker, var/def_zone, var/attack_text)
 	if(!default_parry_check(src, attacker, damage_source))
 		return 0
-		
+
 	var/obj/item/organ/external/activehand = null
 	var/obj/item/organ/external/activearm = null
 	if(hand)
@@ -172,61 +197,61 @@ meteor_act
 	else
 		activehand = organs_by_name[BP_R_HAND]
 		activearm = organs_by_name[BP_R_ARM]
-	
+
 	if(!activehand || !activehand.is_usable() || !activearm || !activearm.is_usable())
 		return 0 //we ain't parrying with a hand if it or the arm it's attached to is broken
-		
-	var/zone_guessed_correctly = (def_zone == zone_sel.selecting) // Check if defender guessed the correct zone  
-	  
-	// Calculate parry chance based on melee skill and zone guess  
+
+	var/zone_guessed_correctly = (def_zone == zone_sel.selecting) // Check if defender guessed the correct zone
+
+	// Calculate parry chance based on melee skill and zone guess
 	var/parry_chance = (SKILL_LEVEL(melee) * 5) + (STAT_LEVEL(end)) // melee skill + end
-	
-	if(zone_guessed_correctly)  
-		parry_chance += 30 // Significant bonus for correct zone guess  
-	else  
-		parry_chance -= 20 // Penalty for wrong zone guess  
-	  
-	if(a_intent == I_GRAB) // Better chance on grab intent  
+
+	if(zone_guessed_correctly)
+		parry_chance += 30 // Significant bonus for correct zone guess
+	else
+		parry_chance -= 20 // Penalty for wrong zone guess
+
+	if(a_intent == I_GRAB) // Better chance on grab intent
 		parry_chance += STAT_LEVEL(str) * 2
-		
+
 	if(lying) //stand up.
 		parry_chance -= 25
-	  
+
 	if(prob(parry_chance)) //we parried with our bare hand
-		visible_message("<span class='combat_success'>\The [src] parries [attack_text] with their bare hand!</span>")  
+		visible_message("<span class='combat_success'>\The [src] parries [attack_text] with their bare hand!</span>")
 		playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
 		adjustStaminaLoss(damage)
-		
+
 		if(prob(STAT_LEVEL(end) + 10))
 			to_chat(src, "<span class='combat_success'>As you parry, you feel a rush of adrenaline!</span>")
 			make_adrenaline((STAT_LEVEL(end)) / 21) //Get a little blood pumping
-		  
+
 		//attempt counter grab only if zone was guessed correctly
 		if(zone_guessed_correctly && a_intent == I_GRAB && prob(SKILL_LEVEL(melee) * 7))
 			var/prevzone = zone_sel.selecting
 			if(istype(damage_source, /mob/living/carbon/human) && attack_text == "the kick") //if someones trying to kick us
-				var/target_leg = pick(BP_L_LEG, BP_R_LEG)  
-				zone_sel.selecting = target_leg  
+				var/target_leg = pick(BP_L_LEG, BP_R_LEG)
+				zone_sel.selecting = target_leg
 			else //everything else
 				var/obj/item/attacker_hand = attacker.get_active_hand()
-				if(attacker_hand == attacker.l_hand) // Set target zone to the active hand  
+				if(attacker_hand == attacker.l_hand) // Set target zone to the active hand
 					zone_sel.selecting = BP_L_HAND
-				else  
+				else
 					zone_sel.selecting = BP_R_HAND
 			var/obj/item/organ/external/O = get_organ(zone_sel.selecting)
-			visible_message("<span class='combat_success'>[src] attempts to grabs [attacker]'s [O.name]!</span>")  
+			visible_message("<span class='combat_success'>[src] attempts to grabs [attacker]'s [O.name]!</span>")
 			attacker.attack_hand(src)
 			attacker.setClickCooldown(DEFAULT_SLOW_COOLDOWN)
 			zone_sel.selecting = prevzone
-		  
-		return 1  
-	  
+
+		return 1
+
 	return 0
 
 /mob/living/carbon/human/resolve_item_attack(obj/item/I, mob/living/carbon/human/user, var/target_zone, var/special = FALSE)
 	for (var/obj/item/grab/G in grabbed_by)
 		if(special == FALSE) //no heavy attack throat slit please
-			if(G.resolve_item_attack(user, I, target_zone)) 
+			if(G.resolve_item_attack(user, I, target_zone))
 				return null
 
 	if(user == src) // Attacking yourself can't miss
@@ -254,7 +279,7 @@ meteor_act
 	if(attempt_dodge())
 		return null
 	*/
-	
+
 	if(!hit_zone)
 		visible_message("<span class='danger'>\The [user] misses [src] with \the [I]!</span>")
 		return null
@@ -300,6 +325,8 @@ meteor_act
 	if(aim_zone == BP_THROAT)
 		organ_hit = "throat"
 
+
+	getarmor_organ(affecting, "melee", effective_force)
 	var/blocked = run_armor_check(hit_zone, "melee", I.armor_penetration, "Your armor has protected your [affecting.name].", "Your armor has softened the blow to your [affecting.name].")
 
 
@@ -344,24 +371,29 @@ meteor_act
 	if(effective_force > 10 || effective_force >= 5 && prob(33))
 		forcesay(GLOB.hit_appends)	//forcesay checks stat already
 
-	//Ok this block of text handles cutting arteries, tendons, and limbs off.
-	//First we cut an artery, the reason for that, is that arteries are funninly enough, not that lethal, and don't have the biggest impact. They'll still make you bleed out, but they're less immediately lethal.
-	if(I.sharp && prob(I.sharpness * 2) && !(affecting.status & ORGAN_ARTERY_CUT))
-		affecting.sever_artery()
-		if(affecting.artery_name == "carotid artery")
-			src.visible_message("<span class='danger'>[user] slices [src]'s throat!</span>")
-		else
-			src.visible_message("<span class='danger'>[user] slices open [src]'s [affecting.artery_name] artery!</span>")
+	var/eff_damflags = I.damage_flags()
+	var/obj/item/gear = get_covering_equipped_item(affecting.body_part)
+	if(gear && gear.armor_durability > 0 && effective_force < gear.penetration_threshold)
+		eff_damflags &= ~(DAM_SHARP | DAM_EDGE)
+	else
+		//Ok this block of text handles cutting arteries, tendons, and limbs off.
+		//First we cut an artery, the reason for that, is that arteries are funninly enough, not that lethal, and don't have the biggest impact. They'll still make you bleed out, but they're less immediately lethal.
+		if(I.sharp && prob(I.sharpness * 2) && !(affecting.status & ORGAN_ARTERY_CUT))
+			affecting.sever_artery()
+			if(affecting.artery_name == "carotid artery")
+				src.visible_message("<span class='danger'>[user] slices [src]'s throat!</span>")
+			else
+				src.visible_message("<span class='danger'>[user] slices open [src]'s [affecting.artery_name] artery!</span>")
 
-	//Next tendon, which disables the limb, but does not remove it, making it easier to fix, and less lethal, than losing it.
-	else if(I.sharp && (I.sharpness * 2) && !(affecting.status & ORGAN_TENDON_CUT) && affecting.has_tendon)//Yes this is the same exactly probability again. But I'm running it seperate because I don't want the two to be exclusive.
-		affecting.sever_tendon()
-		src.visible_message("<span class='danger'>[user] slices open [src]'s [affecting.tendon_name] tendon!</span>")
+		//Next tendon, which disables the limb, but does not remove it, making it easier to fix, and less lethal, than losing it.
+		else if(I.sharp && (I.sharpness * 2) && !(affecting.status & ORGAN_TENDON_CUT) && affecting.has_tendon)//Yes this is the same exactly probability again. But I'm running it seperate because I don't want the two to be exclusive.
+			affecting.sever_tendon()
+			src.visible_message("<span class='danger'>[user] slices open [src]'s [affecting.tendon_name] tendon!</span>")
 
-	//Finally if we pass all that, we cut the limb off. This should reduce the number of one hit sword kills.
-	else if(I.sharp && I.edge)
-		if(prob(I.sharpness * strToDamageModifier(user.my_stats[STAT(str)].level)))
-			affecting.droplimb(0, DROPLIMB_EDGE)
+		//Finally if we pass all that, we cut the limb off. This should reduce the number of one hit sword kills.
+		else if(I.sharp && I.edge)
+			if(prob(I.sharpness * strToDamageModifier(user.my_stats[STAT(str)].level)))
+				affecting.droplimb(0, DROPLIMB_EDGE)
 
 	var/obj/item/organ/external/head/O = locate(/obj/item/organ/external/head) in src.organs
 
@@ -378,15 +410,15 @@ meteor_act
 					visible_message("<span class='danger'>[src] [species.knockout_message]</span>")
 					apply_effect(20, PARALYZE, blocked)
 			else
-				//Easier to score a stun but lasts less time
-				if(prob(effective_force + 10))
+				//Easier to score a stun but lasts less time, scaled down by target strength and armor block
+				if(prob(max(0, effective_force + 10 - (STAT_LEVEL(str) * 2)) * (1 - (blocked / 100))))
 					visible_message("<span class='danger'>[src] has been knocked down!</span>")
 					apply_effect(6, WEAKEN, blocked)
 		//Apply blood
-		attack_bloody(I, user, effective_force, hit_zone)
+		attack_bloody(I, user, effective_force, hit_zone, blocked)
 
 	//This was commented out because critical successes are OP as shit. Now they're back.
-	
+
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		if(H.statscheck(skills = H.SKILL_LEVEL(melee)) == CRIT_SUCCESS && user.a_intent == I_HURT)
@@ -401,16 +433,14 @@ meteor_act
 				II.disarm(src)
 				return
 
-	apply_damage(effective_force, I.damtype, hit_zone, blocked, I.damage_flags(), used_weapon=I)
+	apply_damage(effective_force, I.damtype, hit_zone, blocked, eff_damflags, used_weapon=I)
 
 	receive_damage()//The little animation that plays when someone gets hit.
 
 	return 1
 
-/mob/living/carbon/human/proc/attack_bloody(obj/item/W = null, mob/living/attacker, var/effective_force, var/hit_zone)
-	
-	if(W) //so I can use it for headbutts n shit
-		if(W.damtype != BRUTE)
+/mob/living/carbon/human/proc/attack_bloody(obj/item/W, mob/living/attacker, var/effective_force, var/hit_zone, var/blocked = 0)
+	if(W.damtype != BRUTE || blocked_mult(blocked) <= 0.5)
 			return
 
 		//make non-sharp low-force weapons less likely to be bloodied
@@ -584,7 +614,7 @@ meteor_act
 					visible_message("<span class='warning'>[src] catches [O]!</span>")
 					throw_mode_off()
 					return
-		
+
 		var/dtype = O.damtype
 		var/throw_damage = O.throwforce*(speed/THROWFORCE_SPEED_DIVISOR)
 
@@ -613,7 +643,7 @@ meteor_act
 			visible_message("<span class='notice'>\The [O] misses [src] narrowly!</span>")
 			playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
 			return
-			
+
 		var/bad_arc = reverse_direction(src.dir) //arc of directions from which we cannot block or dodge
 		if(check_shield_arc(src, bad_arc, null, AM)) //cant dodge from behind
 			if(attempt_dodge())
@@ -761,7 +791,7 @@ meteor_act
 	var/hit_zone = user.zone_sel.selecting
 	//var/too_high_message = "You can't reach that high."
 	var/obj/item/organ/external/affecting = get_organ(hit_zone)
-	
+
 	if(!affecting || affecting.is_stump())
 		to_chat(user, "<span class='danger'>They are missing that limb!</span>")
 		return
@@ -773,19 +803,19 @@ meteor_act
 				to_chat(attacker, "<big>[src] is on my side!</big>")
 				log_and_message_admins("[attacker] has kicked his teammate [src]!", attacker)
 				GLOB.ff_incidents++
-	
+
 	var/kickdam = rand(2,7)
 	var/armour = run_armor_check(hit_zone, "melee")
 	kickdam *= strToDamageModifier(user.my_stats[STAT(str)].level)
 	user.adjustStaminaLoss(rand(10,20))//Kicking someone is a *bigger* deal than before.
-	
+
 	if(prob(20 - user.my_stats[STAT(dex)].level)) //uh oh we fucked up
 		if(!user.lying)
 			to_chat(user, "<span class='danger'>As you try to kick [src], you lose your balance and fall!</span>")
 			user.Weaken(1)
 		user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but missed!<span>")
 		return
-	
+
 	var/bad_arc = reverse_direction(src.dir) //arc of directions from which we cannot block or dodge
 	if(check_shield_arc(src, bad_arc, null, user)) //cant dodge from behind
 		if(attempt_dodge())
@@ -794,14 +824,14 @@ meteor_act
 		else if(check_shields(kickdam, null, user, null, "the kick"))
 			user.visible_message("<span class=danger>[user] tried to kick [src] in the [affecting.name], but was parried!<span>")
 			return
-			
+
 	var/missed = !prob((user.SKILL_LEVEL(melee) * 10) + (user.my_stats[STAT(dex)].level) - (src.my_stats[STAT(dex)].level))	 //if true, you missed
 	if(missed) //you missed dummy
 		missed_kick(user, src, affecting)
 		return
-		
+
 	var/specialkick = prob((user.SKILL_LEVEL(melee) * 5)) //you didn't miss and got lucky!
-			
+
 	switch(hit_zone) //now we get to the fun part
 
 		if(BP_HEAD, BP_EYES)
@@ -835,8 +865,8 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-		
-		
+
+
 		if(BP_MOUTH)//If we aim for the mouth then we kick their teeth out.
 			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
 				missed_kick(user, src, affecting)
@@ -862,7 +892,7 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-		
+
 		if(BP_THROAT)
 			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
 				missed_kick(user, src, affecting)
@@ -883,7 +913,7 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-		
+
 		if(BP_CHEST) //knee in chest or kick back
 			if(user.lying && !lying && specialkick == FALSE) //your laying down while trying to kick someone standing up. or you missed.
 				missed_kick(user, src, affecting)
@@ -915,7 +945,7 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-		
+
 		if(BP_L_ARM, BP_R_ARM)
 			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
 				missed_kick(user, src, affecting)
@@ -935,7 +965,7 @@ meteor_act
 						//Urist McAssistant dropped the macguffin with a scream just sounds odd.
 						src.visible_message("<span class='danger'>\The [src.r_hand] falls out of [src]'s grasp!</span>")
 						src.drop_l_hand()
-				
+
 				return
 			else if(specialkick == TRUE && !user.lying && lying) //victim is lying, attacker is standing
 				var/mob/living/carbon/human/Attacker = user
@@ -949,7 +979,7 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-				
+
 		if(BP_L_HAND, BP_R_HAND)
 			if(user.lying && !lying && specialkick == FALSE) //you missed dummy
 				missed_kick(user, src, affecting)
@@ -984,7 +1014,7 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-		
+
 		if(BP_GROIN)
 			if(specialkick == TRUE && !user.lying && !lying) //both are standing
 				do_kick(user, src, hit_zone, kickdam * 2, affecting) //DAMN THATS DIRTEH
@@ -1012,7 +1042,7 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-		
+
 		if(BP_R_LEG, BP_L_LEG)
 			if(specialkick == TRUE && !user.lying && !lying) //you got lucky
 				do_kick(user, src, hit_zone, kickdam * 2, affecting) //that hurt a little more
@@ -1037,7 +1067,7 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-		
+
 		if(BP_R_FOOT, BP_L_FOOT)
 			if(specialkick == TRUE && !user.lying) //you got lucky
 				var/mob/living/carbon/human/Attacker = user
@@ -1052,15 +1082,15 @@ meteor_act
 				do_kick(user, src, hit_zone, kickdam, affecting)
 				user.visible_message("<span class=danger>[user] kicks [src] in the [affecting.name]!<span>")
 				return
-		
+
 /mob/living/carbon/human/proc/do_kick(var/mob/living/user, var/mob/living/victim, var/hit_zone, var/kickdam, var/obj/item/organ/external/affecting) //easier for me
 	var/kicksound = pick('sound/effects/gore/smash1.ogg','sound/effects/gore/smash2.ogg','sound/effects/gore/smash3.ogg')
 	playsound(user.loc, kicksound, 65, 0.5)
 	victim.apply_damage(kickdam, BRUTE, hit_zone, run_armor_check(hit_zone, "melee"))
 	admin_attack_log(user, src, "Has kicked [victim]", "Has been kicked by [user].")
-	
-/mob/living/carbon/human/proc/missed_kick(var/mob/living/user, var/mob/living/victim, var/obj/item/organ/external/affecting)  
-    user.visible_message("<span class=danger>[user] tried to kick [victim] in the [affecting.name], but missed!<span>")  
+
+/mob/living/carbon/human/proc/missed_kick(var/mob/living/user, var/mob/living/victim, var/obj/item/organ/external/affecting)
+    user.visible_message("<span class=danger>[user] tried to kick [victim] in the [affecting.name], but missed!<span>")
     playsound(loc, 'sound/weapons/punchmiss.ogg', 50, 1)
 
 //We crit failed, let's see what happens to us.

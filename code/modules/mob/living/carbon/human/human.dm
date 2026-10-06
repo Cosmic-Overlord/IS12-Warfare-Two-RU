@@ -160,29 +160,17 @@
 			if (prob(50))
 				Paralyse(10)
 
-	// factor in armour
-	var/protection = blocked_mult(getarmor(null, "bomb"))
-	b_loss *= protection
-	f_loss *= protection
-
-	// focus most of the blast on one organ
-	var/obj/item/organ/external/take_blast = pick(organs)
-	take_blast.take_damage(b_loss * 0.7, f_loss * 0.7, used_weapon = "Explosive blast")
-
-	// distribute the remaining 30% on all limbs equally (including the one already dealt damage)
-	b_loss *= 0.3
-	f_loss *= 0.3
-
-	var/weapon_message = "Explosive Blast"
-	for(var/obj/item/organ/external/temp in organs)
-		var/loss_val
-		if(temp.organ_tag  == BP_HEAD)
-			loss_val = 0.2
-		else if(temp.organ_tag == BP_CHEST)
-			loss_val = 0.4
-		else
-			loss_val = 0.05
-		temp.take_damage(b_loss * loss_val, f_loss * loss_val, used_weapon = weapon_message)
+	var/list/external_organs = list()
+	for(var/obj/item/organ/external/organ in organs)
+		external_organs += organ
+	var/obj/item/organ/external/take_blast = pick(external_organs)
+	for(var/obj/item/organ/external/organ in external_organs)
+		var/damage_multiplier = organ == take_blast ? 0.7 : 0.3 * (organ.organ_tag == BP_HEAD ? 0.2 : (organ.organ_tag == BP_CHEST ? 0.4 : 0.05))
+		organ.take_damage(
+			b_loss * damage_multiplier * blocked_mult(getarmor_organ(organ, "bomb", b_loss * damage_multiplier)),
+			f_loss * damage_multiplier,
+			used_weapon = "Explosive blast"
+		)
 
 /mob/living/carbon/human/proc/implant_loyalty(mob/living/carbon/human/M, override = FALSE) // Won't override by default.
 	if(!config.use_loyalty_implants && !override) return // Nuh-uh.
@@ -1739,29 +1727,29 @@
 				return
 			if(intent == I_GRAB) //GET AWAY
 				var/bad_arc = reverse_direction(src.dir)
-				
+
 				if(user.lying)
 					to_chat(user, "<span class='warning'>I can't shove while lying down!</span>")
 					return 0
-				
+
 				user.setClickCooldown(DEFAULT_QUICK_COOLDOWN)
-				
+
 				if(check_shield_arc(src, bad_arc, null, user) && user != src)
-					if(attempt_dodge()) 
+					if(attempt_dodge())
 						user.visible_message("<span class='danger'>[user] attempted to shove [src], but missed!</span>")
 						return
-				
+
 				if(prob((user.STAT_LEVEL(str) - src.STAT_LEVEL(str)) * 10)) //str based shoves
 					user.visible_message("<span class='combat_success'>[user] shoves [src] back!</span>")
 					src.Move(get_step(src, user.dir), user.dir)
 				else
 					user.visible_message("<span class='danger'>[user] fails to shove [src] back!</span>")
-			
+
 			if(intent == I_HURT) //punch em and put some *effort* into it
 				if(user.lying)
 					to_chat(user, "<span class='warning'>I can't punch harder while lying down!</span>") //well you can, but some messages look weird and its probably better this way balance wise
 					return 0
-				
+
 				user.adjustStaminaLoss(30) //a whole lotta effort
 				user.visible_message("<span class='combat_success'>[user] puts some effort into their attack! </span>")
 				src.attack_hand(user, 3)
