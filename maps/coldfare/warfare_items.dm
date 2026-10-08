@@ -833,14 +833,12 @@
 	icon_state = "charlie_patch"
 	high_visibility = FALSE
 
-// maybe I will remove them later
 /obj/item/clothing/accessory/armband/medarm
 	icon_state = "med_arm"
 	high_visibility = FALSE
 
 /obj/item/clothing/accessory/armband/medarm/blue
 	icon_state = "med_armb"
-//
 
 /obj/item/clothing/accessory/medal/medical
 	name = "medical patch"

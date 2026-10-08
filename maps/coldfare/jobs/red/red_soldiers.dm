@@ -75,6 +75,7 @@
 		var/current_name = H.real_name
 		..()
 		H.set_trait(new/datum/trait/death_tolerant())
+		H.assign_random_squad(RED_TEAM, "medic")
 		H.fully_replace_character_name("Medic [current_name]")
 
 		H.say(";Medic reporting for duty!")
