@@ -44,9 +44,9 @@ SUBSYSTEM_DEF(day_cycle)
 	phases = list(
 		new /datum/day_cycle_phase("#000000", 7 MINUTES,  "midnight"),
 		new /datum/day_cycle_phase("#110500", 2 MINUTES,  "dawn_start"),
-		new /datum/day_cycle_phase("#9e4f1b", 2 MINUTES,  "sunrise"),
-		new /datum/day_cycle_phase("#a9b2c4", 7 MINUTES,  "noon"),
-		new /datum/day_cycle_phase("#a35520", 2 MINUTES,  "sunset"),
+		new /datum/day_cycle_phase("#9e4f1b", 3 MINUTES,  "sunrise"),
+		new /datum/day_cycle_phase("#a9b2c4", 9 MINUTES,  "noon"),
+		new /datum/day_cycle_phase("#a35520", 4 MINUTES,  "sunset"),
 		new /datum/day_cycle_phase("#110500", 2 MINUTES,  "dusk_end"),
 	)
 
