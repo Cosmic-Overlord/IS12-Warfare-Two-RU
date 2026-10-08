@@ -104,6 +104,9 @@
 /atom/proc/is_open_container()
 	return atom_flags & ATOM_FLAG_OPEN_CONTAINER
 
+/atom/proc/can_accept_reagents()
+	return TRUE
+
 /*//Convenience proc to see whether a container can be accessed in a certain way.
 
 	proc/can_subract_container()
@@ -558,7 +561,7 @@ its easier to just keep the beam vertical.
 	if(!Adjacent(user) || user.incapacitated(INCAPACITATION_STUNNED|INCAPACITATION_KNOCKOUT|INCAPACITATION_BUCKLED_PARTIALLY|INCAPACITATION_BUCKLED_FULLY) \
 		|| istype(user.wear_suit, /obj/item/clothing/suit/straight_jacket) || istype(user.loc, /obj/structure/closet))
 		return
-		
+
 	for(var/obj/item/grab/G in user.grabbed_by)
 		if(G.target_zone in list(BP_L_LEG, BP_R_LEG, BP_L_FOOT, BP_R_FOOT)) //bit hard to kick someone if they've grabbed your leg
 			var/obj/item/organ/external/O = G.get_targeted_organ()
@@ -602,7 +605,7 @@ its easier to just keep the beam vertical.
 		if(affecting.is_broken())//Our legs are broken can't jump here either.
 			to_chat(user, "<span class='warning'>Can't jump on a broken leg!</span>")
 			return
-			
+
 	for(var/obj/item/grab/G in user.grabbed_by)
 		if(G.target_zone in list(BP_L_LEG, BP_R_LEG, BP_L_FOOT, BP_R_FOOT)) //oh shit someones grabbing our leg
 			to_chat(user, "<span class='phobia'>You try to jump, but feel someone pull you back down!</span>")
