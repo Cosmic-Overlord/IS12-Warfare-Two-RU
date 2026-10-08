@@ -833,6 +833,15 @@
 	icon_state = "charlie_patch"
 	high_visibility = FALSE
 
+// maybe I will remove them later
+/obj/item/clothing/accessory/armband/medarm
+	icon_state = "med_arm"
+	high_visibility = FALSE
+
+/obj/item/clothing/accessory/armband/medarm/blue
+	icon_state = "med_armb"
+//
+
 /obj/item/clothing/accessory/medal/medical
 	name = "medical patch"
 	icon_state = "medic_patch"
@@ -990,9 +999,7 @@
 
 /obj/item/storage/backpack/satchel/warfare/prac
 	icon_state = "firstaidsatchel"
-
-/obj/item/storage/backpack/satchel/warfare/prac/blue
-	icon_state = "firstaidsatchel_blue"
+	item_state = "red_med_satchel"
 
 /obj/item/storage/backpack/satchel/warfare/red
 	icon_state = "redsatchel"
@@ -1047,6 +1054,10 @@
 //BLUE STORAGE ITEMS
 /obj/item/storage/backpack/satchel/warfare/blue
 	icon_state = "blue_satchel"
+
+/obj/item/storage/backpack/satchel/warfare/prac/blue
+	icon_state = "firstaidsatchel_blue"
+	item_state = "blue_med_satchel" // why it was removed???
 
 /obj/item/storage/backpack/satchel/warfare/blue/soldier
 	New()
@@ -1586,3 +1597,67 @@ obj/item/storage/backpack/satchel/warfare/chestrig/blue/oldlmg
 	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECTION_TEMPERATURE
 	str_requirement = 13
 	footstep = 1
+
+/// MAN WITH KNIVES
+/decl/hierarchy/outfit/man_with_knives
+	name = "MAN WITH KNIVES's Outfit"
+	mask = /obj/item/clothing/mask/gas/colorless/flamer
+	uniform = /obj/item/clothing/under/soldier
+	shoes = /obj/item/clothing/shoes/jackboots/warfare/colorless
+	belt = /obj/item/material/sword/combat_knife
+	l_ear = /obj/item/reagent_containers/hypospray/autoinjector/warfare/trooper
+	l_pocket = /obj/item/storage/box/ifak
+	r_pocket = /obj/item/reagent_containers/hypospray/autoinjector/warfare/trooper
+	suit = /obj/item/clothing/suit/armor/colorless_coat
+	gloves = /obj/item/clothing/gloves/thick/swat/combat/warfare/colorless
+	back = /obj/item/storage/backpack/satchel/warfare/colorless
+	backpack_contents = list(/obj/item/material/sword/combat_knife = 3)
+	neck = /obj/item/reagent_containers/food/drinks/canteen
+	pda_type = null
+
+/obj/item/clothing/suit/armor/colorless_coat
+	name = "Colorless coat"
+	desc = "You think you see some colors in it... This piece looks very old."
+	icon_state = "redcoatnew"
+	item_state = "redsuit"
+	cold_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS
+	body_parts_covered = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS
+	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECTION_TEMPERATURE
+	canremove = FALSE
+	armor = list(melee = 80, bullet = 80, laser = 40, energy = 40, bomb = 40, bio = 10, rad = 0)
+
+/obj/item/clothing/shoes/jackboots/warfare/colorless
+	name = "Colorless jackboots"
+	desc = "You think you see some colors in it... Those boots looks very old."
+	icon_state = "redboots"
+	item_state = "redboots"
+	canremove = FALSE
+
+/obj/item/clothing/mask/gas/colorless/flamer
+	name = "Colorless mask"
+	desc = "The mask's colors have faded long ago..."
+	icon_state = "flamer_red"
+	item_state = "flamer_red"
+	flags_inv = HIDEEARS|HIDEEYES|HIDEFACE|BLOCKHAIR
+	body_parts_covered = FACE|EYES
+	cold_protection = HEAD
+	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECTION_TEMPERATURE
+	helmet_vision = FALSE
+	worldicons = "sniperworld"
+	canremove = FALSE
+	armor = list(melee = 30, bullet = 20, laser = 40, energy = 40, bomb = 40, bio = 10, rad = 0)
+
+/obj/item/clothing/gloves/thick/swat/combat/warfare/colorless
+	name = "Colorless gloves"
+	desc = "They're gloves. You need gloves in the cold. Paint gloves your way."
+	canremove = FALSE
+
+/obj/item/storage/backpack/satchel/warfare/colorless
+	name = "Dark satchel"
+	desc = "It's weathered down and has some holes in it. But still does it's job."
+	canremove = FALSE
+
+//MAN WITH KNIVES Spawn
+/obj/effect/landmark/start/man_with_knives
+	name = "MAN WITH KNIVES"
+/// forgot

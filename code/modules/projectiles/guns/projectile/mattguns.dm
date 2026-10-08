@@ -882,3 +882,27 @@
 	name = "Shig 420"
 	desc = SPAN_DANGER("I shouldn't touch this... I shouldn't even look at it...\n\nBy god... What have we done?")
 */
+/*//damn you
+/obj/item/gun/projectile/automatic/m22/warmonger/krautshot
+	name = "Mk.1 Krautshot"
+	desc = "This weapon literally only holds together due to the rough construction and the fortitude of its assembler. I can only pray that it doesn't jam."
+	icon_state = "krautshot"
+	item_state = "krautshot"
+	wielded_item_state = "krautshot-wielded"
+	fire_sound = 'sound/weapons/gunshot/gunshot_arifle.ogg'
+	loaded_icon = "krautshot"
+	unwielded_loaded_icon = "krautshot"
+	wielded_loaded_icon = "krautshot-wielded"
+	unloaded_icon = "krautshot-e"
+	unwielded_unloaded_icon = "krautshot-e"
+	wielded_unloaded_icon = "krautshot-wielded-e"
+	condition = 75
+
+	magazine_type = /obj/item/ammo_magazine/c45rifle/akarabiner
+	allowed_magazines = /obj/item/ammo_magazine/c45rifle/akarabiner
+	fire_delay = 0
+	firemodes = list()
+	slot_flags = FALSE
+	w_class = ITEM_SIZE_HUGE
+	gun_type = GUN_SEMIAUTO
+*/
