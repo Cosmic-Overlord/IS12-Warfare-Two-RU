@@ -182,6 +182,7 @@
 
 /obj/item/ammo_box/rifle/modern
 	name = "\improper modern rifle bullets box"
+	icon_state = "shellbox" // zaglushka
 	desc = "You get 556 rifle bullets out of this one."
 	handful_type = /obj/item/ammo_magazine/handful/modernrifle
 	max_stacks = 10
