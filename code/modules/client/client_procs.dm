@@ -212,6 +212,12 @@
 
 	screen += tooltip
 
+	if(mob && ishuman(mob)) //I would like my hud icons on reconnect please thank you
+		var/mob/living/carbon/human/H = mob
+		if(H.warfare_faction && SSwarfare && SSwarfare.battle_time)
+			H.set_squad_huds()
+			H.set_team_huds()
+
 /client
 	var/obj/hovered_obj = null
 
@@ -253,7 +259,7 @@
 		SSwarfare.blue.team_clients -= src
 	else
 		SSwarfare.red.team_clients -= src
-		
+
 	return ..()
 
 /client/Destroy()
@@ -480,7 +486,7 @@ client/proc/MayRespawn()
 
 /atom/proc/onMouseMove(object, location, control, params)
 	return
-	
+
 /client/verb/update_ping(time as num) //monke port
 	set instant = TRUE
 	set name = ".update_ping"

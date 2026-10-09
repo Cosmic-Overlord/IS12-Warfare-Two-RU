@@ -28,7 +28,7 @@
 
 /mob/living/carbon/human/proc/assign_random_squad(var/team, var/rank)
 	switch(team)
-		if(RED_TEAM)//You're now put in whatever squad has the least amount of living people in it.
+		if(RED_TEAM)//You're now put in whatever squad has the least amount of living people in it. | WHY THIS SO FUCCKED
 			var/alpha_members = SSwarfare.red.squadA.members.len
 			var/bravo_members = SSwarfare.red.squadB.members.len
 			var/charlie_members = SSwarfare.red.squadC.members.len
@@ -39,11 +39,12 @@
 				//equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/alpha(src),slot_l_ear) //Saving the original here in case I want to return to it.
 				equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/sl_alpha(src),slot_l_ear)
 				var/obj/item/clothing/suit/armor/redcoat/RC = get_equipped_item(slot_wear_suit)
-				var/obj/item/clothing/accessory/armband/alpha/A = new(src)
-				RC.attach_accessory(src,A)
 				if(rank == "medic")
 					var/obj/item/clothing/accessory/armband/medarm/M = new(src)
 					RC.attach_accessory(src,M)
+				else
+					var/obj/item/clothing/accessory/armband/alpha/A = new(src)
+					RC.attach_accessory(src,A)
 
 			else if(minimum == bravo_members)
 				SSwarfare.red.squadB.members += src
@@ -51,11 +52,12 @@
 				equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/sl_bravo(src),slot_l_ear)
 				//equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/bravo(src),slot_l_ear)
 				var/obj/item/clothing/suit/armor/redcoat/RC = get_equipped_item(slot_wear_suit)
-				var/obj/item/clothing/accessory/armband/bravo/B = new(src)
-				RC.attach_accessory(src,B)
 				if(rank == "medic")
 					var/obj/item/clothing/accessory/armband/medarm/M = new(src)
 					RC.attach_accessory(src,M)
+				else
+					var/obj/item/clothing/accessory/armband/bravo/B = new(src)
+					RC.attach_accessory(src,B)
 
 			else if(minimum == charlie_members)
 				SSwarfare.red.squadC.members += src
@@ -63,27 +65,27 @@
 				equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/sl_charlie(src),slot_l_ear)
 				//equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/charlie(src),slot_l_ear)
 				var/obj/item/clothing/suit/armor/redcoat/RC = get_equipped_item(slot_wear_suit)
-				var/obj/item/clothing/accessory/armband/charlie/C = new(src.loc)
-				RC.attach_accessory(src,C)
 				if(rank == "medic")
 					var/obj/item/clothing/accessory/armband/medarm/M = new(src)
 					RC.attach_accessory(src,M)
+				else
+					var/obj/item/clothing/accessory/armband/charlie/C = new(src)
+					RC.attach_accessory(src,C)
+
 			else
 				SSwarfare.red.squadB.members += src
 				src.squad = SSwarfare.red.squadB
 				equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/sl_bravo(src),slot_l_ear)
 				//equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/bravo(src),slot_l_ear)
 				var/obj/item/clothing/suit/armor/redcoat/RC = get_equipped_item(slot_wear_suit)
-				var/obj/item/clothing/accessory/armband/bravo/B = new(src.loc)
-				RC.attach_accessory(src,B)
 				if(rank == "medic")
 					var/obj/item/clothing/accessory/armband/medarm/M = new(src)
 					RC.attach_accessory(src,M)
-			/*if(4)
-				SSwarfare.red.squadD.members += src
-				src.squad = SSwarfare.red.squadD
-				equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/delta(src),slot_l_ear)
-			*/
+				else
+					var/obj/item/clothing/accessory/armband/bravo/B = new(src)
+					RC.attach_accessory(src,B)
+
+
 		if(BLUE_TEAM)
 			var/alpha_members = SSwarfare.blue.squadA.members.len
 			var/bravo_members = SSwarfare.blue.squadB.members.len
@@ -95,11 +97,12 @@
 				equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/sl_alpha(src),slot_l_ear)
 				//equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/alpha(src),slot_l_ear)
 				var/obj/item/clothing/suit/armor/bluecoat/BC = get_equipped_item(slot_wear_suit)
-				var/obj/item/clothing/accessory/armband/alpha/A = new(src)
-				BC.attach_accessory(src,A)
 				if(rank == "medic")
 					var/obj/item/clothing/accessory/armband/medarm/blue/M = new(src)
 					BC.attach_accessory(src,M)
+				else
+					var/obj/item/clothing/accessory/armband/alpha/A = new(src)
+					BC.attach_accessory(src,A)
 
 			else if(minimum == bravo_members)
 				SSwarfare.blue.squadB.members += src
@@ -107,11 +110,12 @@
 				equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/sl_bravo(src),slot_l_ear)
 				//equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/bravo(src),slot_l_ear)
 				var/obj/item/clothing/suit/armor/bluecoat/BC = get_equipped_item(slot_wear_suit)
-				var/obj/item/clothing/accessory/armband/bravo/B = new(src.loc)
-				BC.attach_accessory(src,B)
 				if(rank == "medic")
 					var/obj/item/clothing/accessory/armband/medarm/blue/M = new(src)
 					BC.attach_accessory(src,M)
+				else
+					var/obj/item/clothing/accessory/armband/bravo/B = new(src)
+					BC.attach_accessory(src,B)
 
 			else if(minimum == charlie_members)
 				SSwarfare.blue.squadC.members += src
@@ -119,12 +123,12 @@
 				equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/sl_charlie(src),slot_l_ear)
 				//equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/charlie(src),slot_l_ear)
 				var/obj/item/clothing/suit/armor/bluecoat/BC = get_equipped_item(slot_wear_suit)
-				var/obj/item/clothing/accessory/armband/charlie/C = new(src.loc)
-				BC.attach_accessory(src,C)
 				if(rank == "medic")
 					var/obj/item/clothing/accessory/armband/medarm/blue/M = new(src)
 					BC.attach_accessory(src,M)
-
+				else
+					var/obj/item/clothing/accessory/armband/charlie/C = new(src)
+					BC.attach_accessory(src,C)
 
 			else
 				SSwarfare.blue.squadB.members += src
@@ -132,17 +136,13 @@
 				equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/sl_bravo(src),slot_l_ear)
 				//equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/bravo(src),slot_l_ear)
 				var/obj/item/clothing/suit/armor/bluecoat/BC = get_equipped_item(slot_wear_suit)
-				var/obj/item/clothing/accessory/armband/bravo/B = new(src.loc)
-				BC.attach_accessory(src,B)
 				if(rank == "medic")
 					var/obj/item/clothing/accessory/armband/medarm/blue/M = new(src)
 					BC.attach_accessory(src,M)
+				else
+					var/obj/item/clothing/accessory/armband/bravo/B = new(src)
+					BC.attach_accessory(src,B)
 
-			/*if(4)
-				SSwarfare.blue.squadD.members += src
-				src.squad = SSwarfare.blue.squadD
-				equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/delta(src),slot_l_ear)
-			*/
 
 	var/obj/item/card/id/I = GetIdCard()
 	var/actual_job = "Soldier"
@@ -186,13 +186,6 @@
 				var/obj/item/clothing/accessory/armband/charlie/C = new(src)
 				RC.attach_accessory(src,C)
 
-			/*
-			else if(!SSwarfare.red.squadD.squad_leader)
-				SSwarfare.red.squadD.members += src
-				SSwarfare.red.squadD.squad_leader = src
-				src.squad = SSwarfare.red.squadD
-				equip_to_slot_or_del(new /obj/item/device/radio/headset/red_team/sl_delta(src),slot_l_ear)
-			*/
 			else//Somehow we have more than 3 SLs, no idea how but let's just exit now.
 				return
 
@@ -223,15 +216,10 @@
 				var/obj/item/clothing/suit/armor/bluecoat/BC = get_equipped_item(slot_wear_suit)
 				var/obj/item/clothing/accessory/armband/charlie/C = new(src)
 				BC.attach_accessory(src,C)
-			/*
-			else if(!SSwarfare.blue.squadD.squad_leader)
-				SSwarfare.blue.squadD.members += src
-				SSwarfare.blue.squadD.squad_leader = src
-				src.squad = SSwarfare.blue.squadD
-				equip_to_slot_or_del(new /obj/item/device/radio/headset/blue_team/sl_delta(src),slot_l_ear)
-			*/
+
 			else
 				return
+
 
 	var/obj/item/card/id/I = GetIdCard()
 	I.assignment = "[src.squad.name] Squad"

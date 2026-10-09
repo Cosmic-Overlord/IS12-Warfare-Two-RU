@@ -34,13 +34,13 @@
 /obj/machinery/light/streetlamp/attack_hand(mob/user)
 	return FALSE
 
-/obj/machinery/light/streetlamp/IO_receive_input(input_name, activator, caller)
+/obj/machinery/light/streetlamp/IO_receive_input(input_name, activator, caller, list/params)
 	switch(lowertext(input_name))
-		if("open", "on") 
+		if("open", "on")
 			seton(TRUE)
-		if("close", "off") 
+		if("close", "off")
 			seton(FALSE)
-		if("toggle") 
+		if("toggle")
 			seton(!on)
 	return ..()
 

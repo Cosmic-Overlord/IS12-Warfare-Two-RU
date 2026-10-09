@@ -51,14 +51,14 @@
 /obj/sound_emitter/periodic/proc/trigger()
 	if(!enabled || QDELETED(src))
 		return
-	
+
 	if(prob(chance_to_play))
 		on_success()
 		playsound(loc, pick(sounds), volume, vary)
-	
+
 	addtimer(CALLBACK(src, .proc/trigger), rand(min_delay, max_delay))
 
-/obj/sound_emitter/periodic/IO_receive_input(input_name, atom/activator, atom/caller)
+/obj/sound_emitter/periodic/IO_receive_input(input_name, atom/activator, atom/caller, list/params)
 	set waitfor = 0
 	switch(lowertext(input_name))
 		if("enable")
@@ -75,9 +75,9 @@
 			return TRUE
 		if("toggle")
 			if(enabled)
-				return IO_receive_input("Disable", activator, caller)
+				return IO_receive_input("Disable", activator, caller, params)
 			else
-				return IO_receive_input("Enable", activator, caller)
+				return IO_receive_input("Enable", activator, caller, params)
 	return FALSE
 
 /obj/sound_emitter/periodic/Destroy()

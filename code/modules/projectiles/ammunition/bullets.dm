@@ -146,13 +146,6 @@
 	projectile_type = /obj/item/projectile/energy/flash/flare
 	matter = list(DEFAULT_WALL_MATERIAL = 90, "glass" = 90)
 
-/obj/item/ammo_casing/a556
-	desc = "A 5.56mm bullet casing."
-	caliber = "a556"
-	projectile_type = /obj/item/projectile/bullet/rifle/a556
-	icon_state = "ar1"
-	spent_icon = "rifle-casing-spent"
-
 /obj/item/ammo_casing/a145
 	name = "shell casing"
 	desc = "A 14.5mm shell."
@@ -166,6 +159,24 @@
 	name = "APDS shell casing"
 	desc = "A 14.5mm Armour Piercing Discarding Sabot shell."
 	projectile_type = /obj/item/projectile/bullet/rifle/a145/apds
+
+/obj/item/ammo_casing/a556/perforator
+	desc = "A 5.56mm bullet casing."
+	caliber = "a556"
+	projectile_type = /obj/item/projectile/bullet/rifle/a556
+	icon_state = "ar1"
+	spent_icon = "rifle-casing-spent"
+	armor_penetration = 20 // it's the perforator man it has to
+
+/obj/item/ammo_casing/a556
+	desc = "A 5.56mm bullet casing."
+	caliber = "a556"
+	projectile_type = /obj/item/projectile/bullet/rifle/a556/perforator
+	icon_state = "ar1"
+	spent_icon = "rifle-casing-spent"
+
+/obj/item/projectile/bullet/rifle/a556/perforator
+	trench_penetration_chance = 25
 
 /obj/item/ammo_casing/a762
 	desc = "A 7.62mm bullet casing."

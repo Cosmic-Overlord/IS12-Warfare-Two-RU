@@ -128,13 +128,21 @@
 	desc = "A rapid and safe way to administer small amounts of drugs by untrained or trained personnel."
 	icon_state = "blue"
 	item_state = "autoinjector"
-	worldicons = "blue_world"
+	//worldicons = "blue_world"
 	amount_per_transfer_from_this = 5
 	volume = 5
 	origin_tech = list(TECH_MATERIAL = 2, TECH_BIO = 2)
 	var/list/starts_with = list(/datum/reagent/inaprovaline = 5)
 
+/obj/item/reagent_containers/hypospray/autoinjector/Initialize(mapload)
+	. = ..()
+	if(type == /obj/item/reagent_containers/hypospray/autoinjector)
+		return INITIALIZE_HINT_QDEL
+
 /obj/item/reagent_containers/hypospray/autoinjector/New()
+	if(type == /obj/item/reagent_containers/hypospray/autoinjector)
+		qdel(src)
+		return
 	..()
 	for(var/T in starts_with)
 		reagents.add_reagent(T, starts_with[T])
@@ -154,12 +162,8 @@
 /obj/item/reagent_containers/hypospray/autoinjector/update_icon()
 	if(reagents.total_volume > 0)
 		icon_state = "[initial(icon_state)]1"
-		if(LAZYLEN(worldicons))
-			worldicons = "[initial(worldicons)]1"
 	else
 		icon_state = "[initial(icon_state)]0"
-		if(LAZYLEN(worldicons))
-			worldicons = "[initial(worldicons)]0"
 
 /obj/item/reagent_containers/hypospray/autoinjector/examine(mob/user)
 	. = ..(user)
@@ -171,31 +175,31 @@
 /obj/item/reagent_containers/hypospray/autoinjector/detox
 	name = "autoinjector (antitox)"
 	icon_state = "green"
-	worldicons = "green_world"
+	//worldicons = "green_world"
 	starts_with = list(/datum/reagent/dylovene = 5)
 
 /obj/item/reagent_containers/hypospray/autoinjector/pain
 	name = "autoinjector (painkiller)"
 	icon_state = "purple"
-	worldicons = "purple_world"
+	//worldicons = "purple_world"
 	starts_with = list(/datum/reagent/tramadol = 10)
 
 /obj/item/reagent_containers/hypospray/autoinjector/combatpain
 	name = "autoinjector (oxycodone)"
 	icon_state = "black"
-	worldicons = "black_world"
+	//worldicons = "black_world"
 	starts_with = list(/datum/reagent/tramadol/oxycodone = 5)
 
 /obj/item/reagent_containers/hypospray/autoinjector/revive
 	name = "autoinjector (atepoine)"
 	icon_state = "black"
-	worldicons = "black_world"
+	//worldicons = "black_world"
 	starts_with = list(/datum/reagent/atepoine = 10)
 
 /obj/item/reagent_containers/hypospray/autoinjector/mindbreaker
 	name = "autoinjector"
 	icon_state = "black"
-	worldicons = "black_world"
+	//worldicons = "black_world"
 	starts_with = list(/datum/reagent/mindbreaker = 5)
 
 /obj/item/reagent_containers/hypospray/autoinjector/blood
@@ -206,6 +210,9 @@
 	amount_per_transfer_from_this = 50
 	volume = 500
 	var/blood_type = "O-"
+
+/obj/item/reagent_containers/hypospray/autoinjector/blood/can_accept_reagents()
+	return FALSE
 
 /obj/item/reagent_containers/hypospray/autoinjector/blood/New()
 	..()
@@ -270,6 +277,9 @@
 		return
 	if(istype(W, /obj/item/reagent_containers/hypospray/autoinjector))
 		var/obj/item/reagent_containers/hypospray/autoinjector/A = W
+		if(!A.can_accept_reagents())
+			to_chat(user, "<span class='notice'>\The [A] cannot be refilled.</span>")
+			return
 		if(src.reagents)
 			var/trans = reagents.trans_to_obj(A, amount_per_transfer_from_this)
 			to_chat(user, "<span class='notice'>[trans] units refilled into \the [A]. [reagents.total_volume] units remaining in \the [src].</span>")

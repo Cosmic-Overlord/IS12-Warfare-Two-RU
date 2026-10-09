@@ -49,6 +49,12 @@
 	fire_sound = 'sound/weapons/guns/fire/pistol_fire.ogg'
 	far_fire_sound = "far_fire"
 
+	var/allowgrenade_attachment = FALSE
+	var/obj/item/grenade_attachment/grenade_attachment = null
+	var/mutable_appearance/grenada = null
+	var/grenade_attachment_offset_x = 32
+	var/grenade_attachment_offset_y = 0
+
 /obj/item/gun/projectile/New()
 	..()
 
@@ -77,15 +83,21 @@
 
 
 	if (chambered)
+		if(chambered.BB && grenade_attachment && grenade_attachment.grenade)
+			var/obj/item/projectile/bb = grenade_attachment.fire(src)
+			qdel(grenade_attachment)
+			grenade_attachment = null
+			update_icon()
+			return bb
 		return chambered.BB
 	return null
 
 /obj/item/gun/projectile/proc/check_for_jam()
 	if(!can_jam)//If the gun can't jam then always return true.
 		return FALSE
-	if(aspect_chosen(/datum/aspect/clean_guns) || aspect_chosen(/datum/aspect/madness))
+	if(aspect_chosen(/datum/aspect/clean_guns))
 		return FALSE
-	if((!is_jammed && prob(GetConditionProb())) || aspect_chosen(/datum/aspect/trenchmas))
+	if((!is_jammed && prob(GetConditionProb())) || aspect_chosen(/datum/aspect/no_guns) || aspect_chosen(/datum/aspect/trenchmas))
 		playsound(src.loc, 'sound/effects/jam.ogg', 50, 1)
 		src.visible_message("<span class='danger'>\The [src] jams!</span>")
 		is_jammed = 1
@@ -113,6 +125,16 @@
 		set_loaded_icons()
 	else
 		set_unloaded_icons()
+
+	if(!grenade_attachment)
+		if(grenada)
+			overlays -= grenada
+			grenada = null
+	else if(!grenada)
+		grenada = image('icons/obj/grenade.dmi', src, "rifle")
+		grenada.pixel_x = grenade_attachment_offset_x
+		grenada.pixel_y = grenade_attachment_offset_y
+		overlays += grenada
 
 
 /obj/item/gun/projectile/proc/set_loaded_icons()
@@ -307,16 +329,18 @@
 				if((ispath(allowed_magazines) && !istype(A, allowed_magazines)) || (islist(allowed_magazines) && !is_type_in_list(A, allowed_magazines)))
 					to_chat(user, "<span class='warning'>\The [A] won't fit into [src].</span>")
 					return
-				if(ammo_magazine)
-					to_chat(user, "<span class='warning'>[src] already has a magazine loaded.</span>")//already a magazine here
-					return
 				if(load_delay)
 					if(!do_after(user, load_delay, src))
 						return
+				var/obj/item/ammo_magazine/old_magazine = ammo_magazine
 				user.remove_from_mob(AM)
 				AM.loc = src
 				ammo_magazine = AM
-				user.visible_message("[user] inserts [AM] into [src].", "<span class='notice'>You insert [AM] into [src].</span>")
+				if(old_magazine)
+					user.put_in_active_hand(old_magazine)
+					user.visible_message("[user] swaps \the [old_magazine] in [src].", "<span class='notice'>You swap out the [old_magazine] in [src].</span>")
+				else
+					user.visible_message("[user] inserts [AM] into [src].", "<span class='notice'>You insert [AM] into [src].</span>")
 				if(reload_sound)
 					playsound(src.loc, reload_sound, 75, 1)
 				if(cock_sound && AM.stored_ammo.len)
@@ -410,12 +434,41 @@
 		to_chat(user, "<span class='warning'>[src] is empty.</span>")
 	update_icon()
 
+/obj/item/gun/projectile/proc/attachthisshit(var/obj/item/A, var/mob/living/carbon/human/user)
+	if(grenade_attachment) return FALSE
+
+	if(user.get_inactive_hand() != src) return FALSE // fucking HOLD IT
+
+	user.remove_from_mob(A)
+	grenade_attachment = A
+	grenade_attachment.forceMove(src)
+	playsound(get_turf(src), 'sound/weapons/guns/interact/launcher_rack.ogg', 85, 1)
+	user.visible_message("[user] attaches \a [A] to [src].", "<span class='notice'>You attach \a [A] to [src].</span>")
+	update_icon()
+	return TRUE
+
+/obj/item/gun/projectile/proc/detachthisshit(var/mob/living/carbon/human/user)
+	if(!grenade_attachment) return FALSE
+
+	if(user.get_inactive_hand() != src) return FALSE
+
+	grenade_attachment.forceMove(get_turf(src))
+	user.put_in_hands(grenade_attachment)
+	user.visible_message("[user] detaches \a [grenade_attachment] from [src].", "<span class='notice'>You detach \a [grenade_attachment] from [src].</span>")
+	grenade_attachment = null
+	update_icon()
+	return TRUE
+
 /obj/item/gun/projectile/attackby(var/obj/item/A as obj, mob/user as mob)
-	if(aspect_chosen(/datum/aspect/madness))
-		to_chat(user, "<span class='warning'>An otherworldly force prevents you from reloading. Do what comes natural.</span>")
+	if(istype(A, /obj/item/grenade_attachment) && allowgrenade_attachment)
+		return attachthisshit(A, user)
+
+	load_ammo(A, user)
+
+/obj/item/gun/projectile/attack_hand(mob/user)
+	if(detachthisshit(user))
 		return
-	else
-		load_ammo(A, user)
+	. = ..()
 
 /obj/item/gun/projectile/attack_self(mob/user as mob)
 	if(firemodes.len > 1)

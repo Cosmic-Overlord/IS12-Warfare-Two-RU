@@ -372,6 +372,10 @@ SUBSYSTEM_DEF(jobs)
 		job.equip(H, H.mind ? H.mind.role_alt_title : "", H.char_branch, H.char_rank)
 		job.apply_fingerprints(H)
 		H.staminaexhaust = 250 + endToStaminaModifier(H.my_stats[STAT(end)].level)
+		if(job.is_blue_team || H.warfare_faction == BLUE_TEAM)
+			H.sanitize_team_hair_color(BLUE_TEAM)
+		else if(job.is_red_team || H.warfare_faction == RED_TEAM)
+			H.sanitize_team_hair_color(RED_TEAM)
 
 	else
 		to_chat(H, "Your job is [rank] and the game just can't handle it! Please report this bug to an administrator.")
@@ -529,6 +533,14 @@ SUBSYSTEM_DEF(jobs)
 	BITSET(H.hud_updateflag, ID_HUD)
 	BITSET(H.hud_updateflag, IMPLOYAL_HUD)
 	BITSET(H.hud_updateflag, SPECIALROLE_HUD)
+
+	if(iswarfare() && SSwarfare.battle_time && H.warfare_faction)
+	// Reset HUDs for all living players on their team so the hud updates automatically on their spawn
+		for(var/mob/living/carbon/human/team_member in GLOB.living_mob_list_)
+			if(team_member.warfare_faction == H.warfare_faction)
+				team_member.set_squad_huds()
+				team_member.set_team_huds()
+
 	return H
 
 /datum/controller/subsystem/jobs/proc/LoadJobs(jobsfile) //ran during round setup, reads info from jobs.txt -- Urist
