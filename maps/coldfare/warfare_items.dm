@@ -1556,7 +1556,7 @@ obj/item/storage/backpack/satchel/warfare/chestrig/blue/oldlmg
 /obj/item/clothing/head/warfare_officer/redlogi
 	name = "Red Logistic Officer\'s Cap"
 	desc = "GREED."
-	icon_state = "redcaptain"
+	icon_state = "redlt"
 	item_state = "redcoat_cf"
 	worldicons = list("captainhatworld1","captainhatworld2")
 	warfare_team = RED_TEAM
@@ -1564,7 +1564,7 @@ obj/item/storage/backpack/satchel/warfare/chestrig/blue/oldlmg
 /obj/item/clothing/head/warfare_officer/bluelogi
 	name = "Blue Logistic Officer\'s Cap"
 	desc = "GREED."
-	icon_state = "redcaptain"
+	icon_state = "bluelt"
 	item_state = "bluecoat_cf"
 	worldicons = list("captainhatworld1","captainhatworld2")
 	warfare_team = BLUE_TEAM
