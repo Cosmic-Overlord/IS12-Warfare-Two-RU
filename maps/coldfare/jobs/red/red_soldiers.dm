@@ -58,6 +58,7 @@
 /datum/job/soldier/red_soldier/medic
 	title = "Red Medic"
 	outfit_type = /decl/hierarchy/outfit/job/redsoldier/medic
+	total_positions = 10
 
 	//Skill defines
 	medical_skill = 10
@@ -90,8 +91,8 @@
 	semi_rifle_skill = 5
 	smg_skill = 5
 	shotgun_skill = 10
-	total_positions = -1
 	boltie_skill = 8
+	total_positions = -1
 
 	announced = FALSE
 
@@ -292,7 +293,7 @@
 		backpack_contents = list(/obj/item/grenade/smokebomb = 1)
 		belt = /obj/item/storage/belt/armageddon
 
-	else if (prob(15))
+	else if(prob(15))
 		suit_store = /obj/item/gun/projectile/shotgun/pump/boltaction/good
 		r_pocket =  /obj/item/ammo_box/rifle/modern
 		backpack_contents = initial(backpack_contents)
@@ -345,7 +346,7 @@
 				backpack_contents = list(/obj/item/grenade/smokebomb = 1)
 				belt = /obj/item/storage/belt/armageddon
 			if(3)
-				suit_store = /obj/item/gun/projectile/automatic/m22/warmonger/fully_auto
+				suit_store = suit_store = /obj/item/gun/projectile/automatic/m22/warmonger
 				backpack_contents = list(/obj/item/clothing/mask/gas/red = 1)
 				r_pocket = /obj/item/grenade/smokebomb
 				chest_holster = /obj/item/storage/backpack/satchel/warfare/chestrig/red/soldier
